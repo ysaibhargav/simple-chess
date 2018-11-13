@@ -71,10 +71,10 @@ class State {
 
         // apply action to state
         void apply_action(const Action& action) {
+            // if it's white's turn, decrease depth value 
+            if (!is_white) depth--;
             // toggle player color
             is_white = !is_white;
-            // if it's white's turn, decrease depth value 
-            if (is_white) depth--;
             
             // execute maintenance moves if any
             for(std::list<Move>::const_iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)

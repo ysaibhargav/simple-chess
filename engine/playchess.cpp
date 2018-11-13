@@ -16,7 +16,7 @@ int main(void) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 2;
+    int depth = 1;
     int is_white = 1;
     msa::mcts::State state(depth, is_white, board);
     msa::mcts::Action action;
@@ -29,9 +29,13 @@ int main(void) {
 	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
 	HumanPlayer white(WHITE);
 
+    printf("MATE IN %d PUZZLE\n", depth);
+
 	for(;;) {
 		// show board
 		state.board.print();
+        if(turn == WHITE && state.depth == 0)
+            break;
 
 		// query player's choice
 		if(turn) {
@@ -47,7 +51,6 @@ int main(void) {
 			break;
 
         state.apply_action(action);
-
 		action.regular.print();
 
 		// opponents turn
@@ -64,5 +67,8 @@ int main(void) {
 		case ChessPlayer::Stalemate:
 			printf("Stalemate\n");
 			break;
+        case ChessPlayer::Normal:
+            printf("Failed to solve puzzle!\n");
+            break;
 	}
 }
