@@ -16,7 +16,7 @@ int main(void) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 1;
+    int depth = 2;
     int is_white = 1;
     msa::mcts::State state(depth, is_white, board);
     msa::mcts::Action action;

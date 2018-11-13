@@ -54,7 +54,7 @@ class State {
         // whether or not this state is terminal (reached end)
         const bool is_terminal() {
             // for mate in n puzzles, we do not want to look at nodes deeper than n
-            if (depth == 0)
+            if (depth < 0)
                 return true;
 
             int color = get_color(); 
@@ -62,6 +62,9 @@ class State {
             if (status == ChessPlayer::Checkmate || status == ChessPlayer::Stalemate)
                 return true;
             return false;
+
+            if (depth == 0 && !is_white)
+                return true;
         }
 
         //  agent id (zero-based) for agent who is about to make a decision

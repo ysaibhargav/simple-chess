@@ -35,7 +35,7 @@ namespace msa {
                 uct_k( sqrt(2) ), 
                 max_iterations( 100 ),
                 max_millis( 0 ),
-                simulation_depth( simulation_depth )
+                simulation_depth( 10 )
             {}
 
 
