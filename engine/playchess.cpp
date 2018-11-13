@@ -18,8 +18,8 @@ int main(void) {
     // TODO(sai): set depth from PGN
     int depth = 2;
     int is_white = 0;
-    State state(depth, is_white, board);
-    Action action;
+    msa::mcts::State state(depth, is_white, board);
+    msa::mcts::Action action;
 
 	list<Move> regulars, nulls;
 	int turn = WHITE;
@@ -27,7 +27,7 @@ int main(void) {
 	bool found;
 
 	// Initialize players
-	msa::mcts::UCT<State, Action> black();
+	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
 	HumanPlayer white(WHITE);
 
 	for(;;) {
@@ -36,11 +36,10 @@ int main(void) {
 
 		// query player's choice
 		if(turn) {
-			action = black.run(state);
-            found = action != Action();
+			found = black.run(state, action);
         }
 		else {
-			found = white.getMove(state.board, action.move);
+			found = white.getMove(state.board, action.regular);
             if (found)
                 state.get_maintenance_moves(action);
         }

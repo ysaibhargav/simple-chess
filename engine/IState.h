@@ -20,14 +20,20 @@ namespace mcts {
 class Action {
     public:
         // TODO(sai): verify constructor
-        Action(Move &regular, list<Move> &nulls):
+        Action(Move &regular, std::list<Move> &nulls):
             regular(regular),
             nulls(nulls)
         {
         }
 
+        Action() {
+            Move move;
+            regular = move;
+            nulls = std::list<Move>();
+        }
+
         Move regular;
-        list<Move> nulls;
+        std::list<Move> nulls;
 };
 
 class State {
@@ -46,7 +52,7 @@ class State {
         //State& operator = (const State& other);
 
         // whether or not this state is terminal (reached end)
-        bool is_terminal() {
+        const bool is_terminal() {
             // for mate in n puzzles, we do not want to look at nodes deeper than n
             if (depth == 0)
                 return true;
@@ -59,7 +65,7 @@ class State {
         }
 
         //  agent id (zero-based) for agent who is about to make a decision
-        int agent_id() {
+        const int agent_id() {
             return is_white;
         } 
 
@@ -71,7 +77,7 @@ class State {
             if (is_white) depth--;
             
             // execute maintenance moves if any
-            for(list<Move>::iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)
+            for(std::list<Move>::const_iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)
                 board.move(*it);
             // execute the regular move
             board.move(action.regular);
@@ -82,10 +88,10 @@ class State {
             // sanity check
             if (is_terminal()) return;            
 
-            list<Move> regulars, nulls;
+            std::list<Move> regulars, nulls;
             // TODO(sai): use shared pointers for nulls
             board.getMoves(get_color(), regulars, regulars, nulls);
-            for(list<Move>::iterator it=regulars.begin(); it!=regulars.end(); it++)
+            for(std::list<Move>::iterator it=regulars.begin(); it!=regulars.end(); it++)
                 actions.push_back(Action(*it, nulls));
         }
 
@@ -93,7 +99,7 @@ class State {
         bool get_random_action(Action& action) {
             if (is_terminal()) return false;
 
-            std::vector<Action>& actions;
+            std::vector<Action> actions;
             get_actions(actions);
             if (actions.size() == 0) return false;
             
@@ -108,14 +114,13 @@ class State {
         // evaluate this state and return a vector of rewards (for each agent)
         const std::vector<float> evaluate() {
             // TODO(sai): implement logic for 2 player AI
-            // sanity check
-            if (!is_white) return;
+            // TODO(sai): sanity check
 
-            vector<float> victory{0, 1};
-            vector<float> loss{1, 0};
+            std::vector<float> victory{0, 1};
+            std::vector<float> loss{1, 0};
             if (depth < 0) return loss;
 
-            ChessPlayer::Status status = board.getPlayerStatus(color);
+            ChessPlayer::Status status = board.getPlayerStatus(get_color());
             // victory only if mate (mate in n puzzles only)
             if (status == ChessPlayer::Checkmate)
                 return victory;            
@@ -131,7 +136,7 @@ class State {
         }
 
         void get_maintenance_moves(Action &action) {
-            list<Move> regulars;
+            std::list<Move> regulars;
             board.getMoves(get_color(), regulars, regulars, action.nulls);
         }
 

@@ -96,8 +96,8 @@ namespace msa {
 
 
             //--------------------------------------------------------------
-            Action run(const State& current_state, unsigned int seed = 1, vector<State>* explored_states = nullptr) {
-                if (current_state.is_terminal()) return Action();
+            bool run(State& current_state, Action &final_action, unsigned int seed = 1, std::vector<State>* explored_states = nullptr) {
+                if (current_state.is_terminal()) return false;
 
                 // initialize timer
                 timer.init();
@@ -165,10 +165,9 @@ namespace msa {
                 }
 
                 // return best node's action
-                if(best_node) return best_node->get_action();
+                if(best_node) final_action = best_node->get_action();
 
-                // we shouldn't be here
-                return Action();
+                return true; 
             }
 
 
