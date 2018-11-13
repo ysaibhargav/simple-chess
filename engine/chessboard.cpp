@@ -162,7 +162,7 @@ void ChessBoard::initFENSetup(std::string FEN)
 
     //int sq = 1;
     //char row = 'A';
-    int start = 0;
+    int start = 56;
     for(unsigned int i = 0; i < board.length(); i++) {
         char c = board[i];
         if(isdigit(c)) {
@@ -175,48 +175,49 @@ void ChessBoard::initFENSetup(std::string FEN)
                 //row += 1;
                 //sq = 1;
                 //start += 1;
+                start -= 16;
             }
             else {
                 //std::string loc;
                 //loc << row << sq;
                 switch(c) {
                     case 'p':
-                        square[start] = PAWN;
-                        break;
-                    case 'n':
-                        square[start] = KNIGHT;
-                        break;
-                    case 'b':
-                        square[start] = BISHOP;
-                        break;
-                    case 'r':
-                        square[start] = ROOK;
-                        break;
-                    case 'q':
-                        square[start] = QUEEN;
-                        break;
-                    case 'k':
-                        square[start] = wk;
-                        white_king_pos = start;
-                        break;
-                    case 'P':
                         square[start] = SET_BLACK(PAWN);
                         break;
-                    case 'R':
-                        square[start] = SET_BLACK(ROOK);
-                        break;
-                    case 'N':
+                    case 'n':
                         square[start] = SET_BLACK(KNIGHT);
                         break;
-                    case 'B':
+                    case 'b':
                         square[start] = SET_BLACK(BISHOP);
                         break;
-                    case 'Q':
+                    case 'r':
+                        square[start] = SET_BLACK(ROOK);
+                        break;
+                    case 'q':
                         square[start] = SET_BLACK(QUEEN);
                         break;
-                    case 'K':
+                    case 'k':
                         square[start] = bk;
                         black_king_pos = start;
+                        break;
+                    case 'P':
+                        square[start] = PAWN;
+                        break;
+                    case 'R':
+                        square[start] = ROOK;
+                        break;
+                    case 'N':
+                        square[start] = KNIGHT;
+                        break;
+                    case 'B':
+                        square[start] = BISHOP;
+                        break;
+                    case 'Q':
+                        square[start] = QUEEN;
+                        break;
+                    case 'K':
+                        square[start] = wk;
+                        white_king_pos = start;
                         break;
                 }
                 //sq++;
