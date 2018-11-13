@@ -2,7 +2,7 @@
 #define CHESS_BOARD_H_INCLUDED
 
 #include "chessplayer.h"
-
+#include <string>
 // Pieces defined in lower 4 bits
 #define EMPTY	0x00	// Empty square
 #define PAWN	0x01	// Bauer
@@ -79,6 +79,10 @@ struct ChessBoard
 	*/
 	char getASCIIrepr(int figure) const;
 
+    /*
+     *Initialize board from FEN
+    */
+    void initFENSetup(std::string FEN);
 	/*
 	* Initialize board for a normal game.
 	*/

@@ -1,5 +1,10 @@
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <iterator>
+#include <iostream>
 #include <list>
 #include "chessboard.h"
 #include "chessplayer.h"
@@ -127,6 +132,109 @@ char ChessBoard::getASCIIrepr(int figure) const
 	}
 	
 	return ' ';
+}
+
+void ChessBoard::initFENSetup(std::string FEN)
+{
+    //clear board
+    memset((void*)square, EMPTY, sizeof(square));
+
+    //Split FEN over spaces
+    std::istringstream iss(FEN);
+    std::vector<std::string> results(std::istream_iterator<std::string>{iss},
+        std::istream_iterator<std::string>());
+
+    std::string board = results[0];
+    //Split FEN[0] over /
+
+    //Set castling (SETmoved)
+    std::string cast = results[2];
+    std::size_t fK = cast.find('K');
+    std::size_t fQ = cast.find('Q');
+    char bk = SET_BLACK(KING);
+    if(fK == std::string::npos && fQ == std::string::npos)
+        bk = SET_MOVED(SET_BLACK(KING));
+    std::size_t fk = cast.find('k');
+    std::size_t fq = cast.find('q');
+    char wk = KING;
+    if(fk == std::string::npos && fq == std::string::npos)
+        wk = SET_MOVED(KING);
+
+    //int sq = 1;
+    //char row = 'A';
+    int start = 0;
+    for(unsigned int i = 0; i < board.length(); i++) {
+        char c = board[i];
+        if(isdigit(c)) {
+            int step = c - '0';
+            //sq += step;
+            start += step;
+        }
+        else {
+            if(c == '/') {
+                //row += 1;
+                //sq = 1;
+                //start += 1;
+            }
+            else {
+                //std::string loc;
+                //loc << row << sq;
+                switch(c) {
+                    case 'p':
+                        square[start] = PAWN;
+                        break;
+                    case 'n':
+                        square[start] = KNIGHT;
+                        break;
+                    case 'b':
+                        square[start] = BISHOP;
+                        break;
+                    case 'r':
+                        square[start] = ROOK;
+                        break;
+                    case 'q':
+                        square[start] = QUEEN;
+                        break;
+                    case 'k':
+                        square[start] = wk;
+                        white_king_pos = start;
+                        break;
+                    case 'P':
+                        square[start] = SET_BLACK(PAWN);
+                        break;
+                    case 'R':
+                        square[start] = SET_BLACK(ROOK);
+                        break;
+                    case 'N':
+                        square[start] = SET_BLACK(KNIGHT);
+                        break;
+                    case 'B':
+                        square[start] = SET_BLACK(BISHOP);
+                        break;
+                    case 'Q':
+                        square[start] = SET_BLACK(QUEEN);
+                        break;
+                    case 'K':
+                        square[start] = bk;
+                        black_king_pos = start;
+                        break;
+                }
+                //sq++;
+                start++;
+            }
+        }
+    }
+    //Set next to move!
+    //Set castling (SETmoved)
+    /*string cast = results[2];
+    std::size_t fK = cast.find('K');
+    std::size_t fQ = cast.find('Q');
+    if(fK == std::string::npos && fQ == std::string::npos)
+        char bk = SET_MOVED(SET_BLACK(KING));
+    std::size_t fk = cast.find('k');
+    std::size_t fq = cast.find('q');
+    if(fk == std::string::npos && fq == std::string::npos)
+        char wk = SET_MOVED(KING);*/
 }
 
 void ChessBoard::initDefaultSetup(void)
