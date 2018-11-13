@@ -4,56 +4,59 @@
 #include <list>
 #include "chessboard.h"
 #include "humanplayer.h"
-#include "aiplayer.h"
+#include "ofxMSAmcts.h"
+#include "IState.h"
 
 using namespace std;
 
 int main(void) {
 
 	ChessBoard board;
+	// setup board
+	board.initDefaultSetup();
+
+    // TODO(sai): set depth from PGN
+    int depth = 2;
+    int is_white = 0;
+    State state(depth, is_white, board);
+    Action action;
+
 	list<Move> regulars, nulls;
 	int turn = WHITE;
 	Move move;
 	bool found;
 
 	// Initialize players
-	AIPlayer black(BLACK, 3);
+	msa::mcts::UCT<State, Action> black();
 	HumanPlayer white(WHITE);
-
-	// setup board
-	board.initDefaultSetup();
 
 	for(;;) {
 		// show board
-		board.print();
+		state.board.print();
 
 		// query player's choice
-		if(turn)
-			found = black.getMove(board, move);
-		else
-			found = white.getMove(board, move);
+		if(turn) {
+			action = black.run(state);
+            found = action != Action();
+        }
+		else {
+			found = white.getMove(state.board, action.move);
+            if (found)
+                state.get_maintenance_moves(action);
+        }
 
 		if(!found)
 			break;
 
-		// if player has a move get all moves
-		regulars.clear();
-		nulls.clear();
-		board.getMoves(turn, regulars, regulars, nulls);
+        state.apply_action(action);
 
-		// execute maintenance moves
-		for(list<Move>::iterator it = nulls.begin(); it != nulls.end(); ++it)
-			board.move(*it);
-
-		// execute move
-		board.move(move);
 		move.print();
 
 		// opponents turn
 		turn = TOGGLE_COLOR(turn);
 	}
 
-	ChessPlayer::Status status = board.getPlayerStatus(turn);
+	ChessPlayer::Status status = state.board.getPlayerStatus(turn);
 
 	switch(status)
 	{

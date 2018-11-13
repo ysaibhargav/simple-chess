@@ -12,7 +12,7 @@
 #include <string>
 #include <list>
 #include "chessboard.h"
-#inculde "chessplayer.h"
+#include "chessplayer.h"
 
 namespace msa {
 namespace mcts {
@@ -70,9 +70,11 @@ class State {
             // if it's white's turn, decrease depth value 
             if (is_white) depth--;
             
-            board.move(action.regular);
+            // execute maintenance moves if any
             for(list<Move>::iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)
                 board.move(*it);
+            // execute the regular move
+            board.move(action.regular);
         }
 
         // return possible actions from this state
@@ -93,6 +95,9 @@ class State {
 
             std::vector<Action>& actions;
             get_actions(actions);
+            if (actions.size() == 0) return false;
+            
+            // TODO(sai): make the generator a class member
             std::default_random_engine generator;
             std::uniform_int_distribution<int> dis(0, actions.size()-1);
             action = actions[dis(generator)];
@@ -111,6 +116,7 @@ class State {
             if (depth < 0) return loss;
 
             ChessPlayer::Status status = board.getPlayerStatus(color);
+            // victory only if mate (mate in n puzzles only)
             if (status == ChessPlayer::Checkmate)
                 return victory;            
             
@@ -122,6 +128,11 @@ class State {
 
         int get_color() {
             return is_white ? WHITE : BLACK;
+        }
+
+        void get_maintenance_moves(Action &action) {
+            list<Move> regulars;
+            board.getMoves(get_color(), regulars, regulars, action.nulls);
         }
 
         // the root state's depth is initialized with n (mate in n)

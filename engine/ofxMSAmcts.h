@@ -35,7 +35,7 @@ namespace msa {
                 uct_k( sqrt(2) ), 
                 max_iterations( 100 ),
                 max_millis( 0 ),
-                simulation_depth( 10 )
+                simulation_depth( simulation_depth )
             {}
 
 
@@ -97,6 +97,8 @@ namespace msa {
 
             //--------------------------------------------------------------
             Action run(const State& current_state, unsigned int seed = 1, vector<State>* explored_states = nullptr) {
+                if (current_state.is_terminal()) return Action();
+
                 // initialize timer
                 timer.init();
 
