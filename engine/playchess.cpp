@@ -17,13 +17,12 @@ int main(void) {
 
     // TODO(sai): set depth from PGN
     int depth = 2;
-    int is_white = 0;
+    int is_white = 1;
     msa::mcts::State state(depth, is_white, board);
     msa::mcts::Action action;
 
 	list<Move> regulars, nulls;
 	int turn = WHITE;
-	Move move;
 	bool found;
 
 	// Initialize players
@@ -49,7 +48,7 @@ int main(void) {
 
         state.apply_action(action);
 
-		move.print();
+		action.regular.print();
 
 		// opponents turn
 		turn = TOGGLE_COLOR(turn);
