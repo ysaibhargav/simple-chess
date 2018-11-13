@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
 	ChessBoard board;
 	list<Move> regulars, nulls;
@@ -16,12 +16,25 @@ int main(void) {
 	Move move;
 	bool found;
 
+
+
 	// Initialize players
 	AIPlayer black(BLACK, 3);
 	HumanPlayer white(WHITE);
 
 	// setup board
-	board.initDefaultSetup();
+    if(argc < 2) {
+	    board.initDefaultSetup();
+    }
+    else {
+        string pos = argv[1];
+        string t = argv[2];
+        string castle = argv[3];
+        string FEN = pos + " " + t + " " + castle;
+        board.initFENSetup(FEN);
+        if(t.find('b') != std::string::npos)
+            turn = BLACK;
+    }
 
 	for(;;) {
 		// show board
