@@ -33,7 +33,7 @@ namespace msa {
             UCT() :
                 iterations(0),
                 uct_k( sqrt(2) ), 
-                max_iterations( 100 ),
+                max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 )
             {}
@@ -93,6 +93,23 @@ namespace msa {
                 return best_node;
             }
 
+            //--------------------------------------------------------------
+            TreeNode* get_most_valuable_child(TreeNode* node) const {
+                int best_value = -1;
+                TreeNode* best_node = NULL;
+
+                int num_children = node->get_num_children();
+                for(int i = 0; i < num_children; i++) {
+                    TreeNode* child = node->get_child(i);
+                    int value = (float)child->get_value() / (child->get_num_visits() + FLT_EPSILON);
+                    if(value > best_value) {
+                        best_value = value;
+                        best_node = child;
+                    }
+                }
+
+                return best_node;
+            }
 
 
             //--------------------------------------------------------------
@@ -151,7 +168,8 @@ namespace msa {
                     }
 
                     // find most visited child
-                    best_node = get_most_visited_child(&root_node);
+                    //best_node = get_most_visited_child(&root_node);
+                    best_node = get_most_valuable_child(&root_node);
 
                     // indicate end of loop for timer
                     timer.loop_end();

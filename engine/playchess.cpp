@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 2;
+    int depth = 4;
     int is_white = 1;
     msa::mcts::State state(depth, is_white, board);
     msa::mcts::Action action;
@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
         string t = argv[2];
         string castle = argv[3];
         string FEN = pos + " " + t + " " + castle;
-        board.initFENSetup(FEN);
-        if(t.find('b') != std::string::npos)
-            turn = BLACK;
+        state.board.initFENSetup(FEN);
+        //if(t.find('b') != std::string::npos)
+        //    turn = BLACK;
     }
 
 	for(;;) {
