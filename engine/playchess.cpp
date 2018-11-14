@@ -9,7 +9,7 @@
 
 using namespace std;
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
 	ChessBoard board;
 	// setup board
@@ -25,11 +25,26 @@ int main(void) {
 	int turn = WHITE;
 	bool found;
 
+
+
 	// Initialize players
 	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
 	HumanPlayer white(WHITE);
 
     printf("MATE IN %d PUZZLE\n", depth);
+	// setup board
+    if(argc < 2) {
+	    board.initDefaultSetup();
+    }
+    else {
+        string pos = argv[1];
+        string t = argv[2];
+        string castle = argv[3];
+        string FEN = pos + " " + t + " " + castle;
+        board.initFENSetup(FEN);
+        if(t.find('b') != std::string::npos)
+            turn = BLACK;
+    }
 
 	for(;;) {
 		// show board
