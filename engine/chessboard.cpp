@@ -149,13 +149,15 @@ void ChessBoard::initFENSetup(std::string FEN)
 
     //Set castling (SETmoved)
     std::string cast = results[2];
-    std::size_t fK = cast.find('K');
-    std::size_t fQ = cast.find('Q');
+    std::size_t fK = cast.find('k');
+    std::size_t fQ = cast.find('q');
     char bk = SET_BLACK(KING);
-    if(fK == std::string::npos && fQ == std::string::npos)
+    if(fK == std::string::npos && fQ == std::string::npos) {
         bk = SET_MOVED(SET_BLACK(KING));
-    std::size_t fk = cast.find('k');
-    std::size_t fq = cast.find('q');
+        //cout << "MOVED";
+    }
+    std::size_t fk = cast.find('K');
+    std::size_t fq = cast.find('Q');
     char wk = KING;
     if(fk == std::string::npos && fq == std::string::npos)
         wk = SET_MOVED(KING);

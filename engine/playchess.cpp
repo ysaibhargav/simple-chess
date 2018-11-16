@@ -20,7 +20,8 @@ int main(int argc, char *argv[]) {
 
 	// Initialize players
 	AIPlayer black(BLACK, 3);
-	HumanPlayer white(WHITE);
+	//HumanPlayer black(BLACK);
+    HumanPlayer white(WHITE);
 
 	// setup board
     if(argc < 2) {
