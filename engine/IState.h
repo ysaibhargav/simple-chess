@@ -94,8 +94,10 @@ class State {
             std::list<Move> regulars, nulls;
             // TODO(sai): use shared pointers for nulls
             board.getMoves(get_color(), regulars, regulars, nulls);
-            for(std::list<Move>::iterator it=regulars.begin(); it!=regulars.end(); it++)
-                actions.push_back(Action(*it, nulls));
+            for(std::list<Move>::iterator it=regulars.begin(); it!=regulars.end(); it++) {
+                if(board.isValidMove(get_color(), *it))
+                    actions.push_back(Action(*it, nulls));
+            }
         }
 
         // get a random action, return false if no actions found
