@@ -184,7 +184,10 @@ void ChessBoard::initFENSetup(std::string FEN)
                 //loc << row << sq;
                 switch(c) {
                     case 'p':
-                        square[start] = SET_BLACK(PAWN);
+                        if(start >= 48 && start < 56)
+                            square[start] = SET_BLACK(PAWN);
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(PAWN));
                         break;
                     case 'n':
                         square[start] = SET_BLACK(KNIGHT);
@@ -203,7 +206,10 @@ void ChessBoard::initFENSetup(std::string FEN)
                         black_king_pos = start;
                         break;
                     case 'P':
-                        square[start] = PAWN;
+                        if(start >= 8 && start < 16)
+                            square[start] = PAWN;
+                        else
+                            square[start] = SET_MOVED(PAWN);
                         break;
                     case 'R':
                         square[start] = ROOK;
