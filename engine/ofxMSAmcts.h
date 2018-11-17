@@ -33,7 +33,7 @@ namespace msa {
             UCT() :
                 iterations(0),
                 uct_k( sqrt(2) ), 
-                max_iterations( 10000 ),
+                max_iterations( 1000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 )
             {}
@@ -136,9 +136,15 @@ namespace msa {
                         node = get_best_uct_child(node, uct_k);
 //						assert(node);	// sanity check
                     }
+                    printf("Selected move is ");
+                    node->action.regular.print();
+                    node->state.board.print();
 
                     // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
                     if(!node->is_fully_expanded() && !node->is_terminal()) node = node->expand();
+                    printf("Expanded move is ");
+                    node->action.regular.print();
+                    node->state.board.print();
                     
                     State state(node->get_state());
 
@@ -148,8 +154,12 @@ namespace msa {
                         for(int t = 0; t < simulation_depth; t++) {
                             if(state.is_terminal()) break;
 
-                            if(state.get_random_action(action))
+                            if(state.get_random_action(action)) {
                                 state.apply_action(action);
+                                printf("Depth %d, move is ", state.depth);
+                                action.regular.print();
+                                state.board.print();
+                            }
                             else
                                 break;
                         }

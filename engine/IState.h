@@ -39,9 +39,9 @@ class Action {
 class State {
 
     public:
-        State(int depth, int is_white, ChessBoard board):
+        State(int depth, int white_to_move, ChessBoard board):
             depth(depth),
-            is_white(is_white),
+            white_to_move(white_to_move),
             board(board)
         {
         }
@@ -63,21 +63,21 @@ class State {
                 return true;
             return false;
 
-            if (depth == 0 && !is_white)
+            if (depth == 0 && !white_to_move)
                 return true;
         }
 
         //  agent id (zero-based) for agent who is about to make a decision
         const int agent_id() {
-            return is_white;
+            return white_to_move;
         } 
 
         // apply action to state
         void apply_action(const Action& action) {
             // if it's white's turn, decrease depth value 
-            if (!is_white) depth--;
+            if (!white_to_move) depth--;
             // toggle player color
-            is_white = !is_white;
+            white_to_move = !white_to_move;
             
             // execute maintenance moves if any
             for(std::list<Move>::const_iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)
@@ -135,7 +135,7 @@ class State {
         std::string to_string() const;
 
         int get_color() {
-            return is_white ? WHITE : BLACK;
+            return white_to_move ? WHITE : BLACK;
         }
 
         void get_maintenance_moves(Action &action) {
@@ -145,7 +145,7 @@ class State {
 
         // the root state's depth is initialized with n (mate in n)
         int depth;
-        int is_white;
+        int white_to_move;
         ChessBoard board;
 };
 

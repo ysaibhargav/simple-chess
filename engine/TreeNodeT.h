@@ -20,6 +20,8 @@ namespace msa {
             typedef std::shared_ptr< TreeNodeT<State, Action> > Ptr;
 
         public:
+            State state;			// the state of this TreeNode
+            Action action;			// the action which led to the state of this TreeNode
             //--------------------------------------------------------------
             TreeNodeT(State& state, TreeNodeT* parent = NULL):
                 state(state),
@@ -96,8 +98,6 @@ namespace msa {
             TreeNodeT* get_parent() const { return parent; }
 
         private:
-            State state;			// the state of this TreeNode
-            Action action;			// the action which led to the state of this TreeNode
             TreeNodeT* parent;		// parent of this TreeNode
 			int agent_id;			// agent who made the decision
 
