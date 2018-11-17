@@ -33,7 +33,7 @@ namespace msa {
             UCT() :
                 iterations(0),
                 uct_k( sqrt(2) ), 
-                max_iterations( 1000 ),
+                max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 )
             {}
@@ -121,6 +121,10 @@ namespace msa {
 
                 // initialize root TreeNode with current state
                 TreeNode root_node(current_state);
+                printf("ROOT\n");
+                printf("Node color is %d\n", root_node.agent_id);
+                printf("Node value is %f\n", root_node.get_value());
+                printf("Num visits is %d\n", root_node.get_num_visits());
 
                 TreeNode* best_node = NULL;
 
@@ -134,7 +138,7 @@ namespace msa {
                     TreeNode* node = &root_node;
                     while(!node->is_terminal() && node->is_fully_expanded()) {
                         node = get_best_uct_child(node, uct_k);
-                        printf("Best UCT child's value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
+                        printf("Best UCT child's color is %d, value is %f, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
                         node->action.regular.print();
                         node->state.board.print();
 //						assert(node);	// sanity check
@@ -184,7 +188,7 @@ namespace msa {
                         //printf("BACKPROP: node color is %d, value is %d, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
                         //printf("BACKPROP: value is %d, num visits is %d \n", node->get_value(), node->get_num_visits());
                         printf("Node color is %d\n", node->agent_id);
-                        printf("Node value is %d\n", node->get_value());
+                        printf("Node value is %f\n", node->get_value());
                         printf("Num visits is %d\n", node->get_num_visits());
                         node->state.board.print();
                         node = node->get_parent();

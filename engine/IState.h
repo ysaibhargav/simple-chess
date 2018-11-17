@@ -121,8 +121,10 @@ class State {
             // TODO(sai): implement logic for 2 player AI
             // TODO(sai): sanity check
 
-            std::vector<float> victory{0, 1};
-            std::vector<float> loss{1, 0};
+            // TODO(sai): change in mcts
+            // [BLACK, WHITE]
+            std::vector<float> victory{1, 0};
+            std::vector<float> loss{0, 1};
             if (depth < 0) return loss;
 
             ChessPlayer::Status status = board.getPlayerStatus(get_color());

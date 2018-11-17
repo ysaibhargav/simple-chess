@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
 
     // TODO(sai): set depth from PGN
     int depth = 4;
-    int is_white = 1;
-    msa::mcts::State state(depth, is_white, board);
+    int white_to_move = 1;
+    msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;
 
 	list<Move> regulars, nulls;
