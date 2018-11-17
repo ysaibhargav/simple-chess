@@ -134,17 +134,22 @@ namespace msa {
                     TreeNode* node = &root_node;
                     while(!node->is_terminal() && node->is_fully_expanded()) {
                         node = get_best_uct_child(node, uct_k);
+                        printf("Best UCT child's value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
+                        node->action.regular.print();
+                        node->state.board.print();
 //						assert(node);	// sanity check
                     }
-                    printf("Selected move is ");
-                    node->action.regular.print();
-                    node->state.board.print();
+                    //printf("Selected move is ");
+                    //node->action.regular.print();
+                    //node->state.board.print();
 
                     // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
-                    if(!node->is_fully_expanded() && !node->is_terminal()) node = node->expand();
-                    printf("Expanded move is ");
-                    node->action.regular.print();
-                    node->state.board.print();
+                    if(!node->is_fully_expanded() && !node->is_terminal()) {
+                        node = node->expand();
+                        printf("Expanded move is ");
+                        node->action.regular.print();
+                        node->state.board.print();
+                    }
                     
                     State state(node->get_state());
 
@@ -174,6 +179,7 @@ namespace msa {
                     // 4. BACK PROPAGATION
                     while(node) {
                         node->update(rewards);
+                        printf("BACKPROP: node value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
                         node = node->get_parent();
                     }
 
