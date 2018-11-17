@@ -177,9 +177,16 @@ namespace msa {
                     if(explored_states) explored_states->push_back(state);
 
                     // 4. BACK PROPAGATION
+                    printf("BACKPROP\n");
                     while(node) {
                         node->update(rewards);
-                        printf("BACKPROP: node value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
+                        //printf("BACKPROP: node value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
+                        //printf("BACKPROP: node color is %d, value is %d, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
+                        //printf("BACKPROP: value is %d, num visits is %d \n", node->get_value(), node->get_num_visits());
+                        printf("Node color is %d\n", node->agent_id);
+                        printf("Node value is %d\n", node->get_value());
+                        printf("Num visits is %d\n", node->get_num_visits());
+                        node->state.board.print();
                         node = node->get_parent();
                     }
 
