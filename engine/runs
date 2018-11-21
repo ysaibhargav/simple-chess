@@ -7,3 +7,6 @@ mate in 2 - 6r1/1pp2kb1/2b4p/p2N4/2P2p2/1P3P2/P6P/2QR1BK1 b - - 0 2 (OK)
 
 Puzzle 2 (mate in 2)
 ./chess 3r1bk1/ppq2ppp/2p2p2/2P5/QP1P3n/2N1P2P/P3B3/R4RK1 b - - 0 3 (OK)
+
+Puzzle 3 (mate in 2)
+./chess 8/7p/4R1pk/5pr1/1P3Q1K/P3P2P/6q1/8 b - - 0 2 (OK)
