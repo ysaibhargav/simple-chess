@@ -195,8 +195,8 @@ namespace msa {
                     }
 
                     // find most visited child
-                    //best_node = get_most_visited_child(&root_node);
-                    best_node = get_most_valuable_child(&root_node);
+                    best_node = get_most_visited_child(&root_node);
+                    //best_node = get_most_valuable_child(&root_node);
 
                     // indicate end of loop for timer
                     timer.loop_end();

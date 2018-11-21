@@ -1,0 +1,9 @@
+Puzzle 1 (mate in 3)
+./chess 6r1/1pp2kb1/2b4p/p1qN4/2P2p2/1P3P2/P6P/2QR1B1K b - (Not OK)
+bishop from G7 to D4
+
+mate in 1 - 6r1/1pp2k2/2b4p/p2N4/2Pb1p2/1P3P2/P6P/2QR1B1K b - - 2 3 (OK)
+mate in 2 - 6r1/1pp2kb1/2b4p/p2N4/2P2p2/1P3P2/P6P/2QR1BK1 b - - 0 2 (OK)
+
+Puzzle 2 (mate in 2)
+./chess 3r1bk1/ppq2ppp/2p2p2/2P5/QP1P3n/2N1P2P/P3B3/R4RK1 b - - 0 3 (OK)
