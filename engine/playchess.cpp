@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
 	for(;;) {
 		// show board
 		state.board.print();
+        if(state.is_terminal())
+            break;
         if(turn == WHITE && state.depth == 0)
             break;
 
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]) {
 		turn = TOGGLE_COLOR(turn);
 	}
 
-	ChessPlayer::Status status = state.board.getPlayerStatus(turn);
+	ChessPlayer::Status status = state.board.getPlayerStatus(WHITE);
 
 	switch(status)
 	{

@@ -22,6 +22,7 @@ namespace msa {
         private:
             LoopTimer timer;
             int iterations;
+            bool debug;
 
         public:
             float uct_k;					// k value in UCT function. default = sqrt(2)
@@ -35,7 +36,8 @@ namespace msa {
                 uct_k( sqrt(2) ), 
                 max_iterations( 10000 ),
                 max_millis( 0 ),
-                simulation_depth( 10 )
+                simulation_depth( 10 ),
+                debug(true)
             {}
 
 
@@ -121,10 +123,12 @@ namespace msa {
 
                 // initialize root TreeNode with current state
                 TreeNode root_node(current_state);
-                printf("ROOT\n");
-                printf("Node color is %d\n", root_node.agent_id);
-                printf("Node value is %f\n", root_node.get_value());
-                printf("Num visits is %d\n", root_node.get_num_visits());
+                if(debug) {
+                    printf("ROOT\n");
+                    printf("Node color is %d\n", root_node.agent_id);
+                    printf("Node value is %f\n", root_node.get_value());
+                    printf("Num visits is %d\n", root_node.get_num_visits());
+                }
 
                 TreeNode* best_node = NULL;
 
@@ -138,9 +142,11 @@ namespace msa {
                     TreeNode* node = &root_node;
                     while(!node->is_terminal() && node->is_fully_expanded()) {
                         node = get_best_uct_child(node, uct_k);
-                        printf("Best UCT child's color is %d, value is %f, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
-                        node->action.regular.print();
-                        node->state.board.print();
+                        if(debug) {
+                            printf("Best UCT child's color is %d, value is %f, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
+                            node->action.regular.print();
+                            node->state.board.print();
+                        }
 //						assert(node);	// sanity check
                     }
                     //printf("Selected move is ");
@@ -150,9 +156,11 @@ namespace msa {
                     // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
                     if(!node->is_fully_expanded() && !node->is_terminal()) {
                         node = node->expand();
-                        printf("Expanded move is ");
-                        node->action.regular.print();
-                        node->state.board.print();
+                        if(debug) {
+                            printf("Expanded move is ");
+                            node->action.regular.print();
+                            node->state.board.print();
+                        }
                     }
                     
                     State state(node->get_state());
@@ -165,9 +173,11 @@ namespace msa {
 
                             if(state.get_random_action(action)) {
                                 state.apply_action(action);
-                                printf("Depth %d, move is ", state.depth);
-                                action.regular.print();
-                                state.board.print();
+                                if(debug) {
+                                    printf("Depth %d, move is ", state.depth);
+                                    action.regular.print();
+                                    state.board.print();
+                                }
                             }
                             else
                                 break;
@@ -181,16 +191,18 @@ namespace msa {
                     if(explored_states) explored_states->push_back(state);
 
                     // 4. BACK PROPAGATION
-                    printf("BACKPROP\n");
+                    if(debug) printf("BACKPROP\n");
                     while(node) {
                         node->update(rewards);
                         //printf("BACKPROP: node value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
                         //printf("BACKPROP: node color is %d, value is %d, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
                         //printf("BACKPROP: value is %d, num visits is %d \n", node->get_value(), node->get_num_visits());
-                        printf("Node color is %d\n", node->agent_id);
-                        printf("Node value is %f\n", node->get_value());
-                        printf("Num visits is %d\n", node->get_num_visits());
-                        node->state.board.print();
+                        if(debug) {
+                            printf("Node color is %d\n", node->agent_id);
+                            printf("Node value is %f\n", node->get_value());
+                            printf("Num visits is %d\n", node->get_num_visits());
+                            node->state.board.print();
+                        }
                         node = node->get_parent();
                     }
 
