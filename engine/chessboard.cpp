@@ -162,6 +162,18 @@ void ChessBoard::initFENSetup(std::string FEN)
     if(fk == std::string::npos && fq == std::string::npos)
         wk = SET_MOVED(KING);
 
+    char brk = SET_BLACK(ROOK);
+    char brq = SET_BLACK(ROOK);
+    if(fK == std::string::npos)
+        brk = SET_MOVED(brk);
+    if(fQ == std::string::npos)
+        brq = SET_MOVED(brq);
+    char wrk = ROOK;
+    char wrq = ROOK;
+    if(fk == std::string::npos)
+        wrk = SET_MOVED(wrk);
+    if(fq == std::string::npos)
+        wrq = SET_MOVED(wrq);
     //int sq = 1;
     //char row = 'A';
     int start = 56;
@@ -184,38 +196,72 @@ void ChessBoard::initFENSetup(std::string FEN)
                 //loc << row << sq;
                 switch(c) {
                     case 'p':
-                        square[start] = SET_BLACK(PAWN);
+                        if(start >= 48 && start < 56)
+                            square[start] = SET_BLACK(PAWN);
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(PAWN));
                         break;
                     case 'n':
-                        square[start] = SET_BLACK(KNIGHT);
+                        if(start == 57 || start == 62)
+                            square[start] = SET_BLACK(KNIGHT);
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(KNIGHT));
                         break;
                     case 'b':
-                        square[start] = SET_BLACK(BISHOP);
+                        if(start == 58 || start == 61)
+                            square[start] = SET_BLACK(BISHOP);
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(BISHOP));
                         break;
                     case 'r':
-                        square[start] = SET_BLACK(ROOK);
+                        if(start == 56)
+                            square[start] = brq;
+                        else if(start == 63)
+                            square[start] = brk;
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(ROOK));
                         break;
                     case 'q':
-                        square[start] = SET_BLACK(QUEEN);
+                        if(start == 59)
+                            square[start] = SET_BLACK(QUEEN);
+                        else
+                            square[start] = SET_MOVED(SET_BLACK(QUEEN));
                         break;
                     case 'k':
                         square[start] = bk;
                         black_king_pos = start;
                         break;
                     case 'P':
-                        square[start] = PAWN;
+                        if(start >= 8 && start < 16)
+                            square[start] = PAWN;
+                        else
+                            square[start] = SET_MOVED(PAWN);
                         break;
                     case 'R':
-                        square[start] = ROOK;
+                        if(start == 0)
+                            square[start] = wrq;
+                        else if(start == 7)
+                            square[start] = wrk;
+                        else
+                            square[start] = SET_MOVED(ROOK);
                         break;
                     case 'N':
-                        square[start] = KNIGHT;
+                        if(start == 1 || start == 6)
+                            square[start] = KNIGHT;
+                        else
+                            square[start] = SET_MOVED(KNIGHT);
                         break;
                     case 'B':
-                        square[start] = BISHOP;
+                        if(start == 2 || start == 5)
+                            square[start] = BISHOP;
+                        else
+                            square[start] = SET_MOVED(BISHOP);
                         break;
                     case 'Q':
-                        square[start] = QUEEN;
+                        if(start == 3)
+                            square[start] = QUEEN;
+                        else
+                            square[start] = SET_MOVED(QUEEN);
                         break;
                     case 'K':
                         square[start] = wk;
