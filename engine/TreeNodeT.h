@@ -112,7 +112,6 @@ namespace msa {
             //--------------------------------------------------------------
             // create a clone of the current state, apply action, and add as child
             TreeNodeT* add_child_with_action(const Action& new_action) {
-                // TODO(sai): copy to mcts
                 State child_state = state;
                 child_state.apply_action(new_action);
 

@@ -8,6 +8,7 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 
 #include "TreeNodeT.h"
 #include "MSALoopTimer.h"
+#include "minimax.h"
 #include <cfloat>
 
 namespace msa {
@@ -29,6 +30,8 @@ namespace msa {
             unsigned int max_iterations;	// do a maximum of this many iterations (0 to run till end)
             unsigned int max_millis;		// run for a maximum of this many milliseconds (0 to run till end)
             unsigned int simulation_depth;	// how many ticks (frames) to run simulation for
+            unsigned int minimax_depth_trigger;
+            bool use_minimax_rollouts;
 
             //--------------------------------------------------------------
             UCT() :
@@ -37,6 +40,8 @@ namespace msa {
                 max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 ),
+                use_minimax_rollouts(false),
+                minimax_depth_trigger(-1),
                 debug(false)
             {}
 
@@ -166,29 +171,37 @@ namespace msa {
                     State state(node->get_state());
 
                     // 3. SIMULATE (if not terminal)
+                    std::vector<float> rewards;
+                    bool minimax_search_triggered = false;
                     if(!node->is_terminal()) {
                         Action action;
                         for(int t = 0; t < simulation_depth; t++) {
                             if(state.is_terminal()) break;
 
-                            if(state.get_random_action(action)) {
-                                state.apply_action(action);
-                                if(debug) {
-                                    printf("Depth %d, move is ", state.depth);
-                                    action.regular.print();
-                                    state.board.print();
-                                }
-                            }
-                            else
+                            if(use_minimax_rollouts && state.depth == minimax_depth_trigger){
+                                float black_reward = minimax(state);
+                                rewards.push_back(black_reward);
+                                rewards.push_back(1.-black_reward);
+                                minimax_search_triggered = true;
                                 break;
+                            }
+                            state.get_random_action(action);
+                            state.apply_action(action);
+                            if(debug) {
+                                printf("Depth %d, move is ", state.depth);
+                                action.regular.print();
+                                state.board.print();
+                            }
                         }
                     }
 
-                    // get rewards vector for all agents
-                    const std::vector<float> rewards = state.evaluate();
-
-                    // add to history
-                    if(explored_states) explored_states->push_back(state);
+                    if(!minimax_search_triggered){
+                        // get rewards vector for all agents
+                        rewards = state.evaluate();
+                    
+                        // add to history
+                        if(explored_states) explored_states->push_back(state);
+                    }
 
                     // 4. BACK PROPAGATION
                     if(debug) printf("BACKPROP\n");

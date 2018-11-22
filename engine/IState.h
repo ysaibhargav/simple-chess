@@ -131,6 +131,10 @@ class State {
             return loss;
         } 
 
+        const float evaluate_minimax() {
+            return evaluate()[0];
+        }
+
         // return state as string (for debug purposes)
         std::string to_string() const;
 
