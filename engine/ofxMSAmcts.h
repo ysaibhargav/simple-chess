@@ -34,14 +34,14 @@ namespace msa {
             bool use_minimax_rollouts;
 
             //--------------------------------------------------------------
-            UCT() :
+            UCT(bool use_minimax_rollouts=false, unsigned int minimax_depth_trigger=-1) :
                 iterations(0),
                 uct_k( sqrt(2) ), 
                 max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 ),
-                use_minimax_rollouts(false),
-                minimax_depth_trigger(-1),
+                use_minimax_rollouts(use_minimax_rollouts),
+                minimax_depth_trigger(minimax_depth_trigger),
                 debug(false)
             {}
 
@@ -178,7 +178,7 @@ namespace msa {
                         for(int t = 0; t < simulation_depth; t++) {
                             if(state.is_terminal()) break;
 
-                            if(use_minimax_rollouts && state.depth == minimax_depth_trigger){
+                            if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
                                 float black_reward = minimax(state);
                                 rewards.push_back(black_reward);
                                 rewards.push_back(1.-black_reward);
