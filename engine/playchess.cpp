@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
 
     // TODO(sai): set depth from PGN
     int depth = 4;
-    int is_white = 1;
-    msa::mcts::State state(depth, is_white, board);
+    int white_to_move = 1;
+    msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;
 
 	list<Move> regulars, nulls;
@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
 	for(;;) {
 		// show board
 		state.board.print();
+        if(state.is_terminal())
+            break;
         if(turn == WHITE && state.depth == 0)
             break;
 
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]) {
 		turn = TOGGLE_COLOR(turn);
 	}
 
-	ChessPlayer::Status status = state.board.getPlayerStatus(turn);
+	ChessPlayer::Status status = state.board.getPlayerStatus(WHITE);
 
 	switch(status)
 	{

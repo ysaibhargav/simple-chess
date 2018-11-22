@@ -25,7 +25,7 @@ namespace msa {
                 state(state),
                 action(),
                 parent(parent),
-				agent_id(state.agent_id()),
+				agent_id(!state.agent_id()),
                 num_visits(0),
                 value(0),
                 depth(parent ? parent->depth + 1 : 0)
@@ -58,7 +58,7 @@ namespace msa {
 
             //--------------------------------------------------------------
             void update(const std::vector<float>& rewards) {
-                this->value += rewards[agent_id];
+                value += rewards[agent_id];
                 num_visits++;
             }
 
@@ -95,7 +95,7 @@ namespace msa {
             // get parent
             TreeNodeT* get_parent() const { return parent; }
 
-        private:
+        //private:
             State state;			// the state of this TreeNode
             Action action;			// the action which led to the state of this TreeNode
             TreeNodeT* parent;		// parent of this TreeNode
@@ -112,14 +112,15 @@ namespace msa {
             //--------------------------------------------------------------
             // create a clone of the current state, apply action, and add as child
             TreeNodeT* add_child_with_action(const Action& new_action) {
+                // TODO(sai): copy to mcts
+                State child_state = state;
+                child_state.apply_action(new_action);
+
                 // create a new TreeNode with the same state (will get cloned) as this TreeNode
-                TreeNodeT* child_node = new TreeNodeT(state, this);
+                TreeNodeT* child_node = new TreeNodeT(child_state, this);
 
                 // set the action of the child to be the new action
                 child_node->action = new_action;
-
-                // apply the new action to the state of the child TreeNode
-                child_node->state.apply_action(new_action);
 
                 // add to children
                 children.push_back(Ptr(child_node));
