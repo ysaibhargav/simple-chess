@@ -51,8 +51,6 @@ int main(int argc, char *argv[]) {
 		state.board.print();
         if(state.is_terminal())
             break;
-        if(turn == WHITE && state.depth == 0)
-            break;
 
 		// query player's choice
 		if(turn) {
