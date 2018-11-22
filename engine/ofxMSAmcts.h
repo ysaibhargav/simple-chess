@@ -37,7 +37,7 @@ namespace msa {
                 max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 ),
-                debug(true)
+                debug(false)
             {}
 
 
