@@ -34,7 +34,8 @@ namespace msa {
             bool use_minimax_rollouts;
 
             //--------------------------------------------------------------
-            UCT(bool use_minimax_rollouts=false, unsigned int minimax_depth_trigger=-1) :
+            UCT(bool use_minimax_rollouts=false, unsigned int minimax_depth_trigger=-1,
+                bool debug=false) :
                 iterations(0),
                 uct_k( sqrt(2) ), 
                 max_iterations( 10000 ),
@@ -42,7 +43,7 @@ namespace msa {
                 simulation_depth( 10 ),
                 use_minimax_rollouts(use_minimax_rollouts),
                 minimax_depth_trigger(minimax_depth_trigger),
-                debug(false)
+                debug(debug)
             {}
 
 
@@ -235,7 +236,12 @@ namespace msa {
                 }
 
                 // return best node's action
-                if(best_node) final_action = best_node->get_action();
+                if(best_node){
+                    final_action = best_node->get_action();
+                    //TreeNode *child = best_node;
+                    //while(child = get_most_visited_child(child))
+                    //    child->get_action().regular.print();    
+                }
 
                 return true; 
             }
