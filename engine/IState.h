@@ -14,6 +14,9 @@
 #include "chessboard.h"
 #include "chessplayer.h"
 
+#define WHITE_ID 1
+#define BLACK_ID 0
+
 namespace msa {
 namespace mcts {
 
@@ -132,7 +135,7 @@ class State {
         } 
 
         const float evaluate_minimax() {
-            return evaluate()[0];
+            return evaluate()[BLACK_ID];
         }
 
         // return state as string (for debug purposes)

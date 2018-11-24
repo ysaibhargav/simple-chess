@@ -12,6 +12,10 @@ Only contains information / methods related to State, Action, Parent, Children e
 #include <vector>
 #include <algorithm>
 
+#define NOT_PROVEN -1
+#define PROVEN_VICTORY 1
+#define PROVEN_LOSS 0 
+
 namespace msa {
     namespace mcts {
 
@@ -28,7 +32,8 @@ namespace msa {
 				agent_id(!state.agent_id()),
                 num_visits(0),
                 value(0),
-                depth(parent ? parent->depth + 1 : 0)
+                depth(parent ? parent->depth + 1 : 0),
+                proved(NOT_PROVEN)
             {
             }
 
@@ -104,6 +109,7 @@ namespace msa {
             int num_visits;			// number of times TreeNode has been visited
             float value;			// value of this TreeNode
             int depth;
+            int proved;
 
             std::vector< Ptr > children;	// all current children
             std::vector< Action > actions;			// possible actions from this state

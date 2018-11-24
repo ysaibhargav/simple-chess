@@ -32,16 +32,18 @@ namespace msa {
             unsigned int simulation_depth;	// how many ticks (frames) to run simulation for
             unsigned int minimax_depth_trigger;
             bool use_minimax_rollouts;
+            bool use_minimax_selection;
 
             //--------------------------------------------------------------
-            UCT(bool use_minimax_rollouts=false, unsigned int minimax_depth_trigger=-1,
-                bool debug=false) :
+            UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
+                unsigned int minimax_depth_trigger=-1, bool debug=false) :
                 iterations(0),
                 uct_k( sqrt(2) ), 
                 max_iterations( 10000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 ),
                 use_minimax_rollouts(use_minimax_rollouts),
+                use_minimax_selection(use_minimax_selection),
                 minimax_depth_trigger(minimax_depth_trigger),
                 debug(debug)
             {}
@@ -145,9 +147,20 @@ namespace msa {
                     timer.loop_start();
 
                     // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
+                    bool found_proven_node = false;
                     TreeNode* node = &root_node;
                     while(!node->is_terminal() && node->is_fully_expanded()) {
                         node = get_best_uct_child(node, uct_k);
+                        if(use_minimax_selection && node->proved != NOT_PROVEN){
+                            found_proven_node = true;
+                            break;
+                        }
+                        if(((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
+                            ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value()))){
+                            float black_reward = minimax(node->get_state());
+                            if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
+                            else node->proved = PROVEN_LOSS;
+                        }
                         if(debug) {
                             printf("Best UCT child's color is %d, value is %f, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
                             node->action.regular.print();
@@ -160,7 +173,7 @@ namespace msa {
                     //node->state.board.print();
 
                     // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
-                    if(!node->is_fully_expanded() && !node->is_terminal()) {
+                    if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                         node = node->expand();
                         if(debug) {
                             printf("Expanded move is ");
@@ -174,7 +187,7 @@ namespace msa {
                     // 3. SIMULATE (if not terminal)
                     std::vector<float> rewards;
                     bool minimax_search_triggered = false;
-                    if(!node->is_terminal()) {
+                    if(!found_proven_node && !node->is_terminal()) {
                         Action action;
                         for(int t = 0; t < simulation_depth; t++) {
                             if(state.is_terminal()) break;
@@ -196,7 +209,11 @@ namespace msa {
                         }
                     }
 
-                    if(!minimax_search_triggered){
+                    if(found_proven_node){
+                        if(node->proved == PROVEN_VICTORY) rewards = {1., 0.};
+                        else rewards = {0., 1.};
+                    }
+                    else if(!minimax_search_triggered){
                         // get rewards vector for all agents
                         rewards = state.evaluate();
                     
