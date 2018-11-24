@@ -39,7 +39,7 @@ namespace msa {
                 unsigned int minimax_depth_trigger=-1, bool debug=false) :
                 iterations(0),
                 uct_k( sqrt(2) ), 
-                max_iterations( 10000 ),
+                max_iterations( 50000 ),
                 max_millis( 0 ),
                 simulation_depth( 10 ),
                 use_minimax_rollouts(use_minimax_rollouts),
