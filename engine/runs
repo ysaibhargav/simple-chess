@@ -16,4 +16,4 @@ Puzzle 4 (mate in 3)
 
 Puzzle 5 (mate in 4)
 ./chess r5k1/pp3p1p/2p5/6r1/1P2pq2/P3PbP1/2Q2P2/R3R1K1 w - - 0 2 (OK - MS)
-mate in 5 - ./chess r5k1/ppq2p1p/2p5/6r1/1P2pN2/P3PbP1/2Q2P2/R3R1K1 b - - 0 1
+mate in 5 - ./chess r5k1/ppq2p1p/2p5/6r1/1P2pN2/P3PbP1/2Q2P2/R3R1K1 b - - 0 1 (OK - MS)
