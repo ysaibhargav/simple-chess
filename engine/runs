@@ -1,5 +1,5 @@
 Puzzle 1 (mate in 3)
-./chess 6r1/1pp2kb1/2b4p/p1qN4/2P2p2/1P3P2/P6P/2QR1B1K b - (Not OK)
+./chess 6r1/1pp2kb1/2b4p/p1qN4/2P2p2/1P3P2/P6P/2QR1B1K b - (Not OK - MR, OK - MS)
 bishop from G7 to D4
 
 mate in 1 - 6r1/1pp2k2/2b4p/p2N4/2Pb1p2/1P3P2/P6P/2QR1B1K b - - 2 3 (OK)
@@ -10,3 +10,10 @@ Puzzle 2 (mate in 2)
 
 Puzzle 3 (mate in 2)
 ./chess 8/7p/4R1pk/5pr1/1P3Q1K/P3P2P/6q1/8 b - - 0 2 (OK)
+
+Puzzle 4 (mate in 3)
+./chess r3k2r/pp2npp1/1q6/2b1P1p1/4Np2/2P5/PP4PP/R1B1QR1K b kq - 0 1 (OK - MS)
+
+Puzzle 5 (mate in 4)
+./chess r5k1/pp3p1p/2p5/6r1/1P2pq2/P3PbP1/2Q2P2/R3R1K1 w - - 0 2 (OK - MS)
+mate in 5 - ./chess r5k1/ppq2p1p/2p5/6r1/1P2pN2/P3PbP1/2Q2P2/R3R1K1 b - - 0 1
