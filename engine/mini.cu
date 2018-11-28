@@ -92,20 +92,50 @@ minim_kernel(State* s, Action* a, char* res) {
 
 Action
 minimaxCuda(State state) {
-    std::vector<Action> actions;
+    std::vector<Action>* act;
+    State* s;
+    int numState = 1;
+    char* res;
+    char* resultarray;
+
+    const int threadsPerBlock = 512;
+
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
     if(!state.white_to_move){
         float value = -INF;
         std::vector<Action> actions;
         state.get_actions(actions);
+        const int blocks = (actions.length() + 
+                threadsPerBlock - 1)/threadsPerBlock;
+
+        resultarray = (char*)malloc(sizeof(char)*actions.length());
         // execute kernel
         // pass values to GPU
+        cudaMalloc((void**)&s, sizeof(State) * numState);
+        cudaMalloc((void**)&act, sizeof(Action) * actions.length());
+        cudaMalloc((void**)&res, sizeof(char) * actions.length());
 
+        cudaMemcpy(s, state, sizeof(State)*numState, 
+                cudaMemcpyHostToDevice);
+        cudaMemcpy(act, actions, sizeof(Action)*actions.length(), 
+                cudaMemcpyHostToDevice);
         // execute kernel
+        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res);
+
+        cudaThreadSynchronize();
+
+        cudaMemcpy(resultarray, res, sizeof(char)*actions.length(), 
+                cudaMemcpyDeviceToHost);
 
         //free values
+        cudaFree(s);
+        cudaFree(act);
+        cudaFree(res);
 
+        //use resultarray
+
+        free(resultarray);
 
         value = max(value, minimax(next_state));
         if(value == VICTORY)
