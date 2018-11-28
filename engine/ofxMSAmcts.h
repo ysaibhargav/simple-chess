@@ -89,6 +89,20 @@ namespace msa {
                 return best_node;
             }
 
+            bool has_child_with_proven_victory(TreeNode* root_node, TreeNode &best_child) const {
+                bool found = false;
+                int num_children = root_node->get_num_children();
+                for(int i = 0; i < num_children; i++) {
+                    TreeNode* child = root_node->get_child(i);
+                    if(child->proved == VICTORY) {
+                        found = true;
+                        best_child = *child; 
+                        break;
+                    }
+                }
+                return found;
+            }
+
 
             //--------------------------------------------------------------
             TreeNode* get_most_visited_child(TreeNode* node) const {
@@ -157,6 +171,11 @@ namespace msa {
                     timer.loop_start();
 
                     // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
+                    if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
+                        if(debug) printf("Found child with proven victory!\n");
+                        break;
+                    }
+
                     bool found_proven_node = false;
                     TreeNode* node = &root_node;
                     while(!node->is_terminal() && node->is_fully_expanded()) {
