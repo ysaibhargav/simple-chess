@@ -135,11 +135,19 @@ minimaxCuda(State state) {
 
         //use resultarray
 
+        //free(resultarray);
+        
+        for(int i = 0; i < actions.length(); i++) {
+            if(resultarray[i] == VICTORY)
+                return Action(actions[i]->regular, actions[i]->nulls, value);
+            else
+                value = max(value, resultarray[i]);
+        }
         free(resultarray);
 
-        value = max(value, minimax(next_state));
-        if(value == VICTORY)
-            return Action(it->regular, it->nulls, value);
+        //value = max(value, minimax(next_state));
+        //if(value == VICTORY)
+            //return Action(it->regular, it->nulls, value);
         }
     return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
     }
