@@ -79,10 +79,16 @@ int main(int argc, const char *argv[]) {
     }
 
 	ChessBoard board;
-	// setup board
-	board.initDefaultSetup();
+    FILE *input = fopen(input_filename, "r");
 
-    // TODO(sai): set depth from PGN
+    if (!input) {
+        printf("Unable to open file: %s.\n", input_filename);
+        return -1;
+    }
+    char _FEN[BUFSIZE];
+    fgets(_FEN, BUFSIZE, input);
+    board.initFENSetup(std::string(_FEN));
+
     int white_to_move = 1;
     msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;
@@ -90,7 +96,6 @@ int main(int argc, const char *argv[]) {
 	list<Move> regulars, nulls;
 	int turn = WHITE;
 	bool found;
-
 
 
 	// Initialize players
@@ -104,15 +109,6 @@ int main(int argc, const char *argv[]) {
         minimax_selection_criterion=minimax_selection_criterion, debug=debug);
 	HumanPlayer white(WHITE);
 
-    FILE *input = fopen(input_filename, "r");
-
-    if (!input) {
-        printf("Unable to open file: %s.\n", input_filename);
-        return -1;
-    }
-    char _FEN[BUFSIZE];
-    fgets(_FEN, BUFSIZE, input);
-    board.initFENSetup(std::string(_FEN));
 
 	for(;;) {
 		// show board
