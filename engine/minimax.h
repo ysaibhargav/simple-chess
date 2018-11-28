@@ -59,7 +59,7 @@ Action minimax2(State state){
         for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
             State next_state = state;
             next_state.apply_action(*it);
-            value = max(value, minimax2(next_state).minimax_value);
+            value = max(value, minimax(next_state));
             if(value == VICTORY)
                 return Action(it->regular, it->nulls, value);
         } 
@@ -73,7 +73,7 @@ Action minimax2(State state){
         for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
             State next_state = state;
             next_state.apply_action(*it);
-            value = min(value, minimax2(next_state).minimax_value);
+            value = min(value, minimax(next_state));
             if(value == LOSS)
                 return Action(it->regular, it->nulls, value);
         } 
