@@ -59,11 +59,17 @@ int main(int argc, const char *argv[]) {
     _argv = argv + 1;
     const char *input_filename = get_option_string("-f", NULL);
     int num_of_threads = get_option_int("-n", 1);
+    int depth = get_option_int("-d", -1);
 
     int error = 0;
 
     if (input_filename == NULL) {
         printf("Error: You need to specify -f.\n");
+        error = 1;
+    }
+
+    if (depth == -1) {
+        printf("Error: You need to specify -d.\n");
         error = 1;
     }
 
@@ -77,7 +83,6 @@ int main(int argc, const char *argv[]) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 3;
     int white_to_move = 1;
     msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;
