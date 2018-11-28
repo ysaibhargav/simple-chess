@@ -10,6 +10,7 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 #include "MSALoopTimer.h"
 #include "minimax.h"
 #include <cfloat>
+#include <assert.h>
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
@@ -184,14 +185,19 @@ namespace msa {
                             found_proven_node = true;
                             break;
                         }
-                        if(((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
-                            ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value()))){
+                         
+                        if(use_minimax_selection && (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
+                            ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
+                            assert(minimax_selection_criterion == NONZERO_WINS);
                             float black_reward = minimax(node->get_state());
                             if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
                             else node->proved = PROVEN_LOSS;
+                            found_proven_node = true;
+                            break;
                         }
                         if(debug) {
-                            printf("Best UCT child's color is %d, value is %f, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
+                            printf("Best UCT child's color is %d, value is %f, num visits is %d\n",
+                                node->agent_id, node->get_value(), node->get_num_visits());
                             node->action.regular.print();
                             node->state.board.print();
                         }
