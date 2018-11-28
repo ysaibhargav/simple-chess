@@ -87,6 +87,8 @@ int main(int argc, const char *argv[]) {
     }
     char _FEN[BUFSIZE];
     fgets(_FEN, BUFSIZE, input);
+    printf("MATE IN %d PUZZLE\n", depth);
+    printf("Loaded FEN: %s\n", _FEN);
     board.initFENSetup(std::string(_FEN));
 
     int white_to_move = 1;
@@ -94,7 +96,7 @@ int main(int argc, const char *argv[]) {
     msa::mcts::Action action;
 
 	list<Move> regulars, nulls;
-	int turn = WHITE;
+	int turn = white_to_move ? WHITE : BLACK;
 	bool found;
 
 
