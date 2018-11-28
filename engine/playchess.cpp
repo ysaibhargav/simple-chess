@@ -79,24 +79,6 @@ int main(int argc, const char *argv[]) {
     }
 
 	ChessBoard board;
-	// setup board
-	board.initDefaultSetup();
-
-    // TODO(sai): set depth from PGN
-    int white_to_move = 1;
-    msa::mcts::State state(depth, white_to_move, board);
-    msa::mcts::Action action;
-
-	list<Move> regulars, nulls;
-	int turn = WHITE;
-	bool found;
-
-
-
-	// Initialize players
-	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
-	HumanPlayer white(WHITE);
-
     FILE *input = fopen(input_filename, "r");
 
     if (!input) {
@@ -106,6 +88,20 @@ int main(int argc, const char *argv[]) {
     char _FEN[BUFSIZE];
     fgets(_FEN, BUFSIZE, input);
     board.initFENSetup(std::string(_FEN));
+
+    int white_to_move = 1;
+    msa::mcts::State state(depth, white_to_move, board);
+    msa::mcts::Action action;
+
+	list<Move> regulars, nulls;
+	int turn = WHITE;
+	bool found;
+
+
+	// Initialize players
+	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
+	HumanPlayer white(WHITE);
+
 
 	for(;;) {
 		// show board
