@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 5;
+    int depth = 4;
     int white_to_move = 1;
     msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;
@@ -31,9 +31,11 @@ int main(int argc, char *argv[]) {
 	bool use_minimax_rollouts = false;
     unsigned minimax_depth_trigger = depth;
     bool use_minimax_selection = true;
+    unsigned minimax_selection_criterion = ALWAYS;
     bool debug = false;
 	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
-        use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger, debug=debug);
+        use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger,
+        minimax_selection_criterion=minimax_selection_criterion, debug=debug);
 	HumanPlayer white(WHITE);
 
     printf("MATE IN %d PUZZLE\n", depth);

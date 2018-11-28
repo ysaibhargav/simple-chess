@@ -23,20 +23,31 @@ namespace mcts {
 class Action {
     public:
         // TODO(sai): verify constructor
-        Action(Move &regular, std::list<Move> &nulls):
+        Action(Move &regular, std::list<Move> &nulls, float minimax_value=-1):
             regular(regular),
-            nulls(nulls)
+            nulls(nulls),
+            minimax_value(minimax_value)
         {
+        }
+
+        Action(float minimax_value):
+            minimax_value(minimax_value)
+        {
+            Move move;
+            regular = move;
+            nulls = std::list<Move>();
         }
 
         Action() {
             Move move;
             regular = move;
             nulls = std::list<Move>();
+            minimax_value = -1;
         }
 
         Move regular;
         std::list<Move> nulls;
+        float minimax_value;
 };
 
 class State {

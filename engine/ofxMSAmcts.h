@@ -10,6 +10,9 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 #include "MSALoopTimer.h"
 #include "minimax.h"
 #include <cfloat>
+// Minimax selection criteria constants
+#define ALWAYS 0
+#define NONZERO_WINS 1
 
 namespace msa {
     namespace mcts {
@@ -31,12 +34,13 @@ namespace msa {
             unsigned int max_millis;		// run for a maximum of this many milliseconds (0 to run till end)
             unsigned int simulation_depth;	// how many ticks (frames) to run simulation for
             unsigned int minimax_depth_trigger;
+            unsigned int minimax_selection_criterion;
             bool use_minimax_rollouts;
             bool use_minimax_selection;
 
             //--------------------------------------------------------------
             UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
-                unsigned int minimax_depth_trigger=-1, bool debug=false) :
+                unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false) :
                 iterations(0),
                 uct_k( sqrt(2) ), 
                 max_iterations( 100000 ),
@@ -45,6 +49,7 @@ namespace msa {
                 use_minimax_rollouts(use_minimax_rollouts),
                 use_minimax_selection(use_minimax_selection),
                 minimax_depth_trigger(minimax_depth_trigger),
+                minimax_selection_criterion(minimax_selection_criterion),
                 debug(debug)
             {}
 
@@ -125,6 +130,11 @@ namespace msa {
             //--------------------------------------------------------------
             bool run(State& current_state, Action &final_action, unsigned int seed = 1, std::vector<State>* explored_states = nullptr) {
                 if (current_state.is_terminal()) return false;
+
+                if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
+                    final_action = minimax2(State(current_state));
+                    return true;
+                }
 
                 // initialize timer
                 timer.init();

@@ -47,5 +47,39 @@ float minimax(State state){
     }
 }
 
+
+Action minimax2(State state){
+    if(state.is_terminal())
+        return Action(state.evaluate_minimax()); 
+
+    if(!state.white_to_move){
+        float value = -INF;
+        std::vector<Action> actions;
+        state.get_actions(actions); 
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = max(value, minimax2(next_state).minimax_value);
+            if(value == VICTORY)
+                return Action(it->regular, it->nulls, value);
+        } 
+        return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+    }
+
+    if(state.white_to_move){
+        float value = INF;
+        std::vector<Action> actions;
+        state.get_actions(actions); 
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = min(value, minimax2(next_state).minimax_value);
+            if(value == LOSS)
+                return Action(it->regular, it->nulls, value);
+        } 
+        return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+    }
+}
+
 }
 }
