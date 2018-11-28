@@ -173,7 +173,7 @@ namespace msa {
 
                     // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
                     if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
-                        if(debug) printf("Found child with proven victory!\n");
+                        if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
                         break;
                     }
 
