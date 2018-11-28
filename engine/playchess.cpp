@@ -1,6 +1,7 @@
 //#include <mcheck.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <list>
 #include "chessboard.h"
 #include "humanplayer.h"
@@ -9,7 +10,67 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
+#define BUFSIZE 1024
+
+static int _argc;
+static const char **_argv;
+
+/* Starter code function, don't touch */
+const char *get_option_string(const char *option_name,
+			      const char *default_value)
+{
+  for (int i = _argc - 2; i >= 0; i -= 2)
+    if (strcmp(_argv[i], option_name) == 0)
+      return _argv[i + 1];
+  return default_value;
+}
+
+/* Starter code function, do not touch */
+int get_option_int(const char *option_name, int default_value)
+{
+  for (int i = _argc - 2; i >= 0; i -= 2)
+    if (strcmp(_argv[i], option_name) == 0)
+      return atoi(_argv[i + 1]);
+  return default_value;
+}
+
+/* Starter code function, do not touch */
+float get_option_float(const char *option_name, float default_value)
+{
+  for (int i = _argc - 2; i >= 0; i -= 2)
+    if (strcmp(_argv[i], option_name) == 0)
+      return (float)atof(_argv[i + 1]);
+  return default_value;
+}
+
+/* Starter code function, do not touch */
+static void show_help(const char *program_path)
+{
+    printf("Usage: %s OPTIONS\n", program_path);
+    printf("\n");
+    printf("OPTIONS:\n");
+    printf("\t-f <input_filename> (required)\n");
+    printf("\t-n <num_of_threads> (required)\n");
+}
+
+int main(int argc, const char *argv[]) {
+
+    _argc = argc - 1;
+    _argv = argv + 1;
+    const char *input_filename = get_option_string("-f", NULL);
+    int num_of_threads = get_option_int("-n", 1);
+
+    int error = 0;
+
+    if (input_filename == NULL) {
+        printf("Error: You need to specify -f.\n");
+        error = 1;
+    }
+
+    if (error) {
+        show_help(argv[0]);
+        return 1;
+    }
 
 	ChessBoard board;
 	// setup board
@@ -31,20 +92,15 @@ int main(int argc, char *argv[]) {
 	msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black;
 	HumanPlayer white(WHITE);
 
-    printf("MATE IN %d PUZZLE\n", depth);
-	// setup board
-    if(argc < 2) {
-	    board.initDefaultSetup();
+    FILE *input = fopen(input_filename, "r");
+
+    if (!input) {
+        printf("Unable to open file: %s.\n", input_filename);
+        return -1;
     }
-    else {
-        string pos = argv[1];
-        string t = argv[2];
-        string castle = argv[3];
-        string FEN = pos + " " + t + " " + castle;
-        state.board.initFENSetup(FEN);
-        //if(t.find('b') != std::string::npos)
-        //    turn = BLACK;
-    }
+    char _FEN[BUFSIZE];
+    fgets(_FEN, BUFSIZE, input);
+    board.initFENSetup(std::string(_FEN));
 
 	for(;;) {
 		// show board
