@@ -11,6 +11,7 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <omp.h>
 
 #define NOT_PROVEN -1
 #define PROVEN_VICTORY 1
@@ -25,7 +26,7 @@ namespace msa {
 
         public:
         //--------------------------------------------------------------
-        TreeNodeT(State& state, TreeNodeT* parent = NULL):
+        TreeNodeT(State& state, TreeNodeT* parent = NULL, bool is_root=false):
           state(state),
           action(),
           parent(parent),
@@ -34,7 +35,8 @@ namespace msa {
           num_visits(0),
           value(0),
           depth(parent ? parent->depth + 1 : 0),
-          proved(NOT_PROVEN)
+          proved(NOT_PROVEN),
+          is_root(is_root)
           {
           }
 
@@ -50,8 +52,20 @@ namespace msa {
 
           // if this is the first expansion and we haven't yet got all of the possible actions
           if(actions.empty()) {
+            std::vector< Action > _actions;
             // retrieve list of actions from the state
-            state.get_actions(actions);
+            state.get_actions(_actions);
+
+            if(!is_root) actions = _actions;
+            else {
+                int tid = omp_get_thread_num();
+                int num_threads = omp_get_num_threads();
+                int num_actions = _actions.size();
+                int span = (num_actions + num_threads - 1) / num_threads;
+                int start_idx = tid * span;
+                int end_idx = std::min(tid + span, num_actions);
+                actions = std::vector< Action >(_actions.begin() + start_idx, _actions.begin() + end_idx);
+            }
 
             // randomize the order
             std::random_shuffle(actions.begin(), actions.end());
@@ -112,6 +126,7 @@ namespace msa {
         float value;			// value of this TreeNode
         int depth;
         int proved;
+        bool is_root;
 
         std::vector< Ptr > children;	// all current children
         std::vector< Action > actions;			// possible actions from this state

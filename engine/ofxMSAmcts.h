@@ -11,6 +11,8 @@
 #include "minimax.h"
 #include <cfloat>
 #include <assert.h>
+#include <omp.h>
+#include "mic.h"
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
@@ -38,10 +40,12 @@ namespace msa {
         bool use_minimax_selection;
         unsigned int minimax_depth_trigger;
         unsigned int minimax_selection_criterion;
+        int num_threads;
 
         //--------------------------------------------------------------
         UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
-            unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false) :
+            unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false,
+            int num_threads=1) :
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
@@ -51,8 +55,11 @@ namespace msa {
           use_minimax_rollouts(use_minimax_rollouts),
           use_minimax_selection(use_minimax_selection),
           minimax_depth_trigger(minimax_depth_trigger),
-          minimax_selection_criterion(minimax_selection_criterion)
-        {}
+          minimax_selection_criterion(minimax_selection_criterion),
+          num_threads(num_threads)
+        {
+            omp_set_num_threads(num_threads);
+        }
 
 
         //--------------------------------------------------------------
@@ -155,7 +162,7 @@ namespace msa {
           //timer.init();
 
           // initialize root TreeNode with current state
-          TreeNode root_node(current_state);
+          TreeNode root_node(current_state, NULL, true);
           if(debug) {
             printf("ROOT\n");
             printf("Node color is %d\n", root_node.agent_id);
@@ -172,7 +179,6 @@ namespace msa {
             //timer.loop_start();
 
             // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
-            //if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
             if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
               best_node = root_node.proven_child;
               if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
@@ -212,11 +218,7 @@ namespace msa {
                 node->action.regular.print();
                 node->state.board.print();
               }
-              //						assert(node);	// sanity check
             }
-            //printf("Selected move is ");
-            //node->action.regular.print();
-            //node->state.board.print();
 
             // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
             if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
@@ -271,9 +273,6 @@ namespace msa {
             if(debug) printf("BACKPROP\n");
             while(node) {
               node->update(rewards);
-              //printf("BACKPROP: node value is %d, num visits is %d\n", node->get_value(), node->get_num_visits());
-              //printf("BACKPROP: node color is %d, value is %d, num visits is %d\n", node->agent_id, node->get_value(), node->get_num_visits());
-              //printf("BACKPROP: value is %d, num visits is %d \n", node->get_value(), node->get_num_visits());
               if(debug) {
                 printf("Node color is %d\n", node->agent_id);
                 printf("Node value is %f\n", node->get_value());
@@ -285,7 +284,6 @@ namespace msa {
 
             // find most visited child
             best_node = get_most_visited_child(&root_node);
-            //best_node = get_most_valuable_child(&root_node);
 
             // indicate end of loop for timer
             //timer.loop_end();
@@ -301,9 +299,6 @@ namespace msa {
           // return best node's action
           if(best_node){
             final_action = best_node->get_action();
-            //TreeNode *child = best_node;
-            //while(child = get_most_visited_child(child))
-            //    child->get_action().regular.print();    
           }
 
           return true; 

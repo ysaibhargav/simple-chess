@@ -59,7 +59,7 @@ int main(int argc, const char *argv[]) {
   _argc = argc - 1;
   _argv = argv + 1;
   const char *input_filename = get_option_string("-f", NULL);
-  //int num_of_threads = get_option_int("-n", 1);
+  int num_threads = get_option_int("-n", 1);
   int depth = get_option_int("-d", -1);
 
   int error = 0;
@@ -109,7 +109,7 @@ int main(int argc, const char *argv[]) {
   bool debug = false;
   msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
       use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger,
-      minimax_selection_criterion=minimax_selection_criterion, debug=debug);
+      minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads);
   HumanPlayer white(WHITE);
 
 
