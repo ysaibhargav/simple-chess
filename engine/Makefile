@@ -1,6 +1,6 @@
 APP_NAME=chess
 
-OBJS=chess.o
+OBJS=playchess.o aiplayer.o chessboard.o humanplayer.o 
 
 default: $(APP_NAME)
 
