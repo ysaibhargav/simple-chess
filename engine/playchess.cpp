@@ -51,6 +51,7 @@ static void show_help(const char *program_path)
   printf("OPTIONS:\n");
   printf("\t-f <input_filename> (required)\n");
   printf("\t-n <num_of_threads> (required)\n");
+  printf("\t-d <depth> (required)\n");
 }
 
 int main(int argc, const char *argv[]) {
