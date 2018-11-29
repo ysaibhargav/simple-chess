@@ -16,7 +16,7 @@ exe=$APP_NAME # The name of your wire routing program
 input=INPUT # The name of the input file
 inputname=`basename $input`
 args="-f $inputname -n THREADS -d DEPTH"
-inputdir=$execdir/inputs # The directory for test cases
+inputdir=$execdir #/inputs # The directory for test cases
 
 echo $inputname
 # Copy executable to $SCRATCH.

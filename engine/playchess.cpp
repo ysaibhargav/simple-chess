@@ -92,7 +92,7 @@ int main(int argc, const char *argv[]) {
   printf("Loaded FEN: %s\n", _FEN);
   board.initFENSetup(std::string(_FEN));
 
-  int white_to_move = 1;
+  int white_to_move = 0;
   msa::mcts::State state(depth, white_to_move, board);
   msa::mcts::Action action;
 
