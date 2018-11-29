@@ -66,7 +66,7 @@ namespace msa {
         //State& operator = (const State& other);
 
         // whether or not this state is terminal (reached end)
-        const bool is_terminal() {
+        bool is_terminal() {
           // for mate in n puzzles, we do not want to look at nodes deeper than n
           if (depth == 0 && white_to_move)
             return true;
@@ -79,7 +79,7 @@ namespace msa {
         }
 
         //  agent id (zero-based) for agent who is about to make a decision
-        const int agent_id() {
+        int agent_id() {
           return white_to_move;
         } 
 
@@ -128,7 +128,7 @@ namespace msa {
         }
 
         // evaluate this state and return a vector of rewards (for each agent)
-        const std::vector<float> evaluate() {
+        std::vector<float> evaluate() {
           // TODO(sai): implement logic for 2 player AI
           // TODO(sai): sanity check
 
@@ -145,7 +145,7 @@ namespace msa {
           return loss;
         } 
 
-        const float evaluate_minimax() {
+        float evaluate_minimax() {
           return evaluate()[BLACK_ID];
         }
 

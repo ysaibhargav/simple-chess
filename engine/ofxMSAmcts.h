@@ -7,7 +7,7 @@
 #pragma once
 
 #include "TreeNodeT.h"
-#include "MSALoopTimer.h"
+//#include "MSALoopTimer.h"
 #include "minimax.h"
 #include <cfloat>
 #include <assert.h>
@@ -25,7 +25,7 @@ namespace msa {
         typedef TreeNodeT<State, Action> TreeNode;
 
         private:
-        LoopTimer timer;
+        //LoopTimer timer;
         unsigned int iterations;
         bool debug;
 
@@ -56,11 +56,11 @@ namespace msa {
 
 
         //--------------------------------------------------------------
-        const LoopTimer & get_timer() const {
-          return timer;
-        }
+        //const LoopTimer & get_timer() const {
+        //  return timer;
+        //}
 
-        const int get_iterations() const {
+        int get_iterations() const {
           return iterations;
         }
 
@@ -152,7 +152,7 @@ namespace msa {
           }
 
           // initialize timer
-          timer.init();
+          //timer.init();
 
           // initialize root TreeNode with current state
           TreeNode root_node(current_state);
@@ -169,7 +169,7 @@ namespace msa {
           iterations = 0;
           while(true) {
             // indicate start of loop
-            timer.loop_start();
+            //timer.loop_start();
 
             // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
             //if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
@@ -288,10 +288,10 @@ namespace msa {
             //best_node = get_most_valuable_child(&root_node);
 
             // indicate end of loop for timer
-            timer.loop_end();
+            //timer.loop_end();
 
             // exit loop if current total run duration (since init) exceeds max_millis
-            if(max_millis > 0 && timer.check_duration(max_millis)) break;
+            //if(max_millis > 0 && timer.check_duration(max_millis)) break;
 
             // exit loop if current iterations exceeds max_iterations
             if(max_iterations > 0 && iterations > max_iterations) break;
