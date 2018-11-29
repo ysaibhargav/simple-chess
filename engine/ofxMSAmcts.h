@@ -58,7 +58,7 @@ namespace msa {
           minimax_selection_criterion(minimax_selection_criterion),
           num_threads(num_threads)
         {
-            omp_set_num_threads(num_threads);
+          omp_set_num_threads(num_threads);
         }
 
 
@@ -171,129 +171,132 @@ namespace msa {
           }
 
           TreeNode* best_node = NULL;
+          #ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
 
-          // iterate
-          iterations = 0;
-          while(true) {
-            // indicate start of loop
-            //timer.loop_start();
+          /* This pragma means we want the code in the following block be executed in 
+           ** Xeon Phi.
+           **/
+          #pragma offload target(mic)
+          #endif
+          {
+            // iterate
+            for(iterations=0; iterations<max_iterations; iterations++) {
+              // indicate start of loop
+              //timer.loop_start();
 
-            // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
-            if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
-              best_node = root_node.proven_child;
-              if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
-              break;
-            }
-
-            bool found_proven_node = false;
-            TreeNode* node = &root_node;
-            while(!node->is_terminal() && node->is_fully_expanded()) {
-              if(use_minimax_selection && node->proved != NOT_PROVEN){
-                found_proven_node = true;
+              // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
+              if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
+                best_node = root_node.proven_child;
+                if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
                 break;
               }
-              node = get_best_uct_child(node, uct_k);
 
-              if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
-                    (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
-                    ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
-                assert(minimax_selection_criterion == NONZERO_WINS);
-                float black_reward = minimax(node->get_state());
-                if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
-                else node->proved = PROVEN_LOSS;
-                found_proven_node = true;
-                if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
-                    node->parent->proved = PROVEN_VICTORY;
-                    node->parent->proven_child = node;
-                }
-                if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
-                    node->parent->proved = PROVEN_LOSS;
-                    node->parent->proven_child = node;
-                }
-                break;
-              }
-              if(debug) {
-                printf("Best UCT child's color is %d, value is %f, num visits is %d\n",
-                    node->agent_id, node->get_value(), node->get_num_visits());
-                node->action.regular.print();
-                node->state.board.print();
-              }
-            }
-
-            // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
-            if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
-              node = node->expand();
-              if(debug) {
-                printf("Expanded move is ");
-                node->action.regular.print();
-                node->state.board.print();
-              }
-            }
-
-            State state(node->get_state());
-
-            // 3. SIMULATE (if not terminal)
-            std::vector<float> rewards;
-            bool minimax_search_triggered = false;
-            if(!found_proven_node && !node->is_terminal()) {
-              Action action;
-              for(unsigned int t = 0; t < simulation_depth; t++) {
-                if(state.is_terminal()) break;
-
-                if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
-                  float black_reward = minimax(state);
-                  rewards.push_back(black_reward);
-                  rewards.push_back(1.-black_reward);
-                  minimax_search_triggered = true;
+              bool found_proven_node = false;
+              TreeNode* node = &root_node;
+              while(!node->is_terminal() && node->is_fully_expanded()) {
+                if(use_minimax_selection && node->proved != NOT_PROVEN){
+                  found_proven_node = true;
                   break;
                 }
-                state.get_random_action(action);
-                state.apply_action(action);
+                node = get_best_uct_child(node, uct_k);
+
+                if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
+                    (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
+                     ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
+                  assert(minimax_selection_criterion == NONZERO_WINS);
+                  float black_reward = minimax(node->get_state());
+                  if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
+                  else node->proved = PROVEN_LOSS;
+                  found_proven_node = true;
+                  if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
+                    node->parent->proved = PROVEN_VICTORY;
+                    node->parent->proven_child = node;
+                  }
+                  if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
+                    node->parent->proved = PROVEN_LOSS;
+                    node->parent->proven_child = node;
+                  }
+                  break;
+                }
                 if(debug) {
-                  printf("Depth %d, move is ", state.depth);
-                  action.regular.print();
-                  state.board.print();
+                  printf("Best UCT child's color is %d, value is %f, num visits is %d\n",
+                      node->agent_id, node->get_value(), node->get_num_visits());
+                  node->action.regular.print();
+                  node->state.board.print();
                 }
               }
-            }
 
-            if(found_proven_node){
-              if(node->proved == PROVEN_VICTORY) rewards = {1., 0.};
-              else rewards = {0., 1.};
-            }
-            else if(!minimax_search_triggered){
-              // get rewards vector for all agents
-              rewards = state.evaluate();
-
-              // add to history
-              if(explored_states) explored_states->push_back(state);
-            }
-
-            // 4. BACK PROPAGATION
-            if(debug) printf("BACKPROP\n");
-            while(node) {
-              node->update(rewards);
-              if(debug) {
-                printf("Node color is %d\n", node->agent_id);
-                printf("Node value is %f\n", node->get_value());
-                printf("Num visits is %d\n", node->get_num_visits());
-                node->state.board.print();
+              // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
+              if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
+                node = node->expand();
+                if(debug) {
+                  printf("Expanded move is ");
+                  node->action.regular.print();
+                  node->state.board.print();
+                }
               }
-              node = node->get_parent();
+
+              State state(node->get_state());
+
+              // 3. SIMULATE (if not terminal)
+              std::vector<float> rewards;
+              bool minimax_search_triggered = false;
+              if(!found_proven_node && !node->is_terminal()) {
+                Action action;
+                for(unsigned int t = 0; t < simulation_depth; t++) {
+                  if(state.is_terminal()) break;
+
+                  if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
+                    float black_reward = minimax(state);
+                    rewards.push_back(black_reward);
+                    rewards.push_back(1.-black_reward);
+                    minimax_search_triggered = true;
+                    break;
+                  }
+                  state.get_random_action(action);
+                  state.apply_action(action);
+                  if(debug) {
+                    printf("Depth %d, move is ", state.depth);
+                    action.regular.print();
+                    state.board.print();
+                  }
+                }
+              }
+
+              if(found_proven_node){
+                if(node->proved == PROVEN_VICTORY) rewards = {1., 0.};
+                else rewards = {0., 1.};
+              }
+              else if(!minimax_search_triggered){
+                // get rewards vector for all agents
+                rewards = state.evaluate();
+
+                // add to history
+                if(explored_states) explored_states->push_back(state);
+              }
+
+              // 4. BACK PROPAGATION
+              if(debug) printf("BACKPROP\n");
+              while(node) {
+                node->update(rewards);
+                if(debug) {
+                  printf("Node color is %d\n", node->agent_id);
+                  printf("Node value is %f\n", node->get_value());
+                  printf("Num visits is %d\n", node->get_num_visits());
+                  node->state.board.print();
+                }
+                node = node->get_parent();
+              }
+
+              // find most visited child
+              best_node = get_most_visited_child(&root_node);
+
+              // indicate end of loop for timer
+              //timer.loop_end();
+
+              // exit loop if current total run duration (since init) exceeds max_millis
+              //if(max_millis > 0 && timer.check_duration(max_millis)) break;
             }
-
-            // find most visited child
-            best_node = get_most_visited_child(&root_node);
-
-            // indicate end of loop for timer
-            //timer.loop_end();
-
-            // exit loop if current total run duration (since init) exceeds max_millis
-            //if(max_millis > 0 && timer.check_duration(max_millis)) break;
-
-            // exit loop if current iterations exceeds max_iterations
-            if(max_iterations > 0 && iterations > max_iterations) break;
-            iterations++;
           }
 
           // return best node's action
