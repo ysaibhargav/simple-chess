@@ -29,6 +29,7 @@ namespace msa {
           state(state),
           action(),
           parent(parent),
+          proven_child(NULL),
           agent_id(!state.agent_id()),
           num_visits(0),
           value(0),
@@ -104,6 +105,7 @@ namespace msa {
         State state;			// the state of this TreeNode
         Action action;			// the action which led to the state of this TreeNode
         TreeNodeT* parent;		// parent of this TreeNode
+        TreeNodeT* proven_child;
         int agent_id;			// agent who made the decision
 
         int num_visits;			// number of times TreeNode has been visited

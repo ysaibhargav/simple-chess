@@ -19,7 +19,7 @@ $(APP_NAME): $(OBJS)
 cpu: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(APP_NAME) $(OBJS)
 
-%.o: %.cpp
+%.o: %.cpp %.h
 	$(CXX) $< $(CXXFLAGS) -c -o $@
 
 submit:

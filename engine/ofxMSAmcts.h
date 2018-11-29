@@ -172,7 +172,9 @@ namespace msa {
             timer.loop_start();
 
             // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
-            if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
+            //if(use_minimax_selection && has_child_with_proven_victory(&root_node, *best_node)) { 
+            if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
+              best_node = root_node.proven_child;
               if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
               break;
             }
@@ -180,19 +182,28 @@ namespace msa {
             bool found_proven_node = false;
             TreeNode* node = &root_node;
             while(!node->is_terminal() && node->is_fully_expanded()) {
-              node = get_best_uct_child(node, uct_k);
               if(use_minimax_selection && node->proved != NOT_PROVEN){
                 found_proven_node = true;
                 break;
               }
+              node = get_best_uct_child(node, uct_k);
 
-              if(use_minimax_selection && (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
+              if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
+                    (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
                     ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
                 assert(minimax_selection_criterion == NONZERO_WINS);
                 float black_reward = minimax(node->get_state());
                 if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
                 else node->proved = PROVEN_LOSS;
                 found_proven_node = true;
+                if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
+                    node->parent->proved = PROVEN_VICTORY;
+                    node->parent->proven_child = node;
+                }
+                if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
+                    node->parent->proved = PROVEN_LOSS;
+                    node->parent->proven_child = node;
+                }
                 break;
               }
               if(debug) {
