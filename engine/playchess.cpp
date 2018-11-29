@@ -59,7 +59,7 @@ int main(int argc, const char *argv[]) {
   _argc = argc - 1;
   _argv = argv + 1;
   const char *input_filename = get_option_string("-f", NULL);
-  int num_of_threads = get_option_int("-n", 1);
+  //int num_of_threads = get_option_int("-n", 1);
   int depth = get_option_int("-d", -1);
 
   int error = 0;
@@ -150,6 +150,9 @@ int main(int argc, const char *argv[]) {
       printf("Stalemate\n");
       break;
     case ChessPlayer::Normal:
+      printf("Failed to solve puzzle!\n");
+      break;
+    case ChessPlayer::InCheck:
       printf("Failed to solve puzzle!\n");
       break;
   }

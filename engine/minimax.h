@@ -33,7 +33,8 @@ namespace msa {
         return LOSS;
       }
 
-      if(state.white_to_move){
+      //if(state.white_to_move){
+      else{
         float value = INF;
         std::vector<Action> actions;
         state.get_actions(actions); 
@@ -66,7 +67,8 @@ namespace msa {
         return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
       }
 
-      if(state.white_to_move){
+      //if(state.white_to_move){
+      else{
         float value = INF;
         std::vector<Action> actions;
         state.get_actions(actions); 

@@ -162,7 +162,7 @@ namespace msa {
         }
 
         // the root state's depth is initialized with n (mate in n)
-        int depth;
+        unsigned int depth;
         int white_to_move;
         ChessBoard board;
     };

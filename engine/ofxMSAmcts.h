@@ -26,7 +26,7 @@ namespace msa {
 
         private:
         LoopTimer timer;
-        int iterations;
+        unsigned int iterations;
         bool debug;
 
         public:
@@ -34,15 +34,16 @@ namespace msa {
         unsigned int max_iterations;	// do a maximum of this many iterations (0 to run till end)
         unsigned int max_millis;		// run for a maximum of this many milliseconds (0 to run till end)
         unsigned int simulation_depth;	// how many ticks (frames) to run simulation for
-        unsigned int minimax_depth_trigger;
-        unsigned int minimax_selection_criterion;
         bool use_minimax_rollouts;
         bool use_minimax_selection;
+        unsigned int minimax_depth_trigger;
+        unsigned int minimax_selection_criterion;
 
         //--------------------------------------------------------------
         UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
             unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false) :
           iterations(0),
+          debug(debug),
           uct_k( sqrt(2) ), 
           max_iterations( 100000 ),
           max_millis( 0 ),
@@ -50,8 +51,7 @@ namespace msa {
           use_minimax_rollouts(use_minimax_rollouts),
           use_minimax_selection(use_minimax_selection),
           minimax_depth_trigger(minimax_depth_trigger),
-          minimax_selection_criterion(minimax_selection_criterion),
-          debug(debug)
+          minimax_selection_criterion(minimax_selection_criterion)
         {}
 
 
@@ -235,7 +235,7 @@ namespace msa {
             bool minimax_search_triggered = false;
             if(!found_proven_node && !node->is_terminal()) {
               Action action;
-              for(int t = 0; t < simulation_depth; t++) {
+              for(unsigned int t = 0; t < simulation_depth; t++) {
                 if(state.is_terminal()) break;
 
                 if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
