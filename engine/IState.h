@@ -38,6 +38,14 @@ namespace msa {
         nulls = std::list<Move>();
       }
 
+        Action(Move &regular):
+          regular(regular)
+      {
+        nulls = std::list<Move>();
+        minimax_value = -1;
+
+      }
+
         Action() {
           Move move;
           regular = move;
@@ -91,8 +99,9 @@ namespace msa {
           white_to_move = !white_to_move;
 
           // execute maintenance moves if any
-          for(std::list<Move>::const_iterator it=action.nulls.begin(); it!=action.nulls.end(); it++)
-            board.move(*it);
+          //for(std::list<Move>::const_iterator it=action.nulls.begin(); it!=action.nulls.end(); it++){
+          //  board.move(*it);
+          //}
           // execute the regular move
           board.move(action.regular);
         }

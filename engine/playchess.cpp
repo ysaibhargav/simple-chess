@@ -52,6 +52,7 @@ static void show_help(const char *program_path)
   printf("\t-f <input_filename> (required)\n");
   printf("\t-n <num_of_threads> (required)\n");
   printf("\t-d <depth> (required)\n");
+  printf("\t-x <run_on_phi> (optional)\n");
 }
 
 int main(int argc, const char *argv[]) {
@@ -61,6 +62,7 @@ int main(int argc, const char *argv[]) {
   const char *input_filename = get_option_string("-f", NULL);
   int num_threads = get_option_int("-n", 1);
   int depth = get_option_int("-d", -1);
+  int run_on_phi = get_option_int("-x", 0);
 
   int error = 0;
 
@@ -92,7 +94,7 @@ int main(int argc, const char *argv[]) {
   printf("Loaded FEN: %s\n", _FEN);
   board.initFENSetup(std::string(_FEN));
 
-  int white_to_move = 0;
+  int white_to_move = run_on_phi ? 0 : 1;
   msa::mcts::State state(depth, white_to_move, board);
   msa::mcts::Action action;
 
@@ -137,6 +139,8 @@ int main(int argc, const char *argv[]) {
 
     // opponents turn
     turn = TOGGLE_COLOR(turn);
+    if(run_on_phi)
+      break;
   }
 
   ChessPlayer::Status status = state.board.getPlayerStatus(WHITE);

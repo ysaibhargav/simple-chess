@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <omp.h>
 #include "mic.h"
+#include "chessboard.h"
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
@@ -161,24 +162,48 @@ namespace msa {
           // initialize timer
           //timer.init();
 
-          // initialize root TreeNode with current state
-          TreeNode root_node(current_state, NULL, true);
-          if(debug) {
-            printf("ROOT\n");
-            printf("Node color is %d\n", root_node.agent_id);
-            printf("Node value is %f\n", root_node.get_value());
-            printf("Num visits is %d\n", root_node.get_num_visits());
-          }
+          //TreeNode* best_node = NULL;
+          Move best_move;
+          char square[64];
+          for(int pos=0; pos<64; pos++)
+            square[pos] = current_state.board.square[pos];
+          char black_king_pos = current_state.board.black_king_pos; 
+          char white_king_pos = current_state.board.white_king_pos; 
+          unsigned int depth = current_state.depth;
+          int white_to_move = current_state.white_to_move;
 
-          TreeNode* best_node = NULL;
           #ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
 
           /* This pragma means we want the code in the following block be executed in 
            ** Xeon Phi.
            **/
-          #pragma offload target(mic)
+          #pragma offload target(mic) \
+            in(square) \
+            in(black_king_pos) \
+            in(white_king_pos) \
+            in(depth) \
+            in(white_to_move) \
+            inout(best_move) \
+            nocopy(seed) \
+            nocopy(explored_states)
           #endif
           {
+            ChessBoard _board;
+            for(int pos=0; pos<64; pos++)
+              _board.square[pos] = square[pos];
+            _board.black_king_pos = black_king_pos;
+            _board.white_king_pos = white_king_pos;
+            
+            State _current_state(depth, white_to_move, _board); 
+            // initialize root TreeNode with current state
+            TreeNode root_node(_current_state, NULL, true);
+            if(debug) {
+              printf("ROOT\n");
+              printf("Node color is %d\n", root_node.agent_id);
+              printf("Node value is %f\n", root_node.get_value());
+              printf("Num visits is %d\n", root_node.get_num_visits());
+            }
+
             // iterate
             for(iterations=0; iterations<max_iterations; iterations++) {
               // indicate start of loop
@@ -186,8 +211,11 @@ namespace msa {
 
               // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
               if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
-                best_node = root_node.proven_child;
-                if(debug) printf("Found child with proven victory in iteration %d!\n", iterations);
+                //best_node = root_node.proven_child;
+                TreeNode *best_node = root_node.proven_child; 
+                best_move = Move(best_node->get_action().regular);
+                //if(debug)
+                  printf("Found child with proven victory in iteration %d!\n", iterations);
                 break;
               }
 
@@ -289,7 +317,7 @@ namespace msa {
               }
 
               // find most visited child
-              best_node = get_most_visited_child(&root_node);
+              //best_node = get_most_visited_child(&root_node);
 
               // indicate end of loop for timer
               //timer.loop_end();
@@ -297,12 +325,13 @@ namespace msa {
               // exit loop if current total run duration (since init) exceeds max_millis
               //if(max_millis > 0 && timer.check_duration(max_millis)) break;
             }
-          }
+          } // end mic
 
           // return best node's action
-          if(best_node){
-            final_action = best_node->get_action();
-          }
+          //if(best_node){
+          //  final_action = best_node->get_action();
+          //}
+          final_action = Action(best_move);        
 
           return true; 
         }
