@@ -151,7 +151,7 @@ namespace msa {
 
 
         //--------------------------------------------------------------
-        bool run(State& current_state, Action &final_action, unsigned int seed = 1, std::vector<State>* explored_states = nullptr) {
+        bool run(State& current_state, Action &final_action, unsigned int seed = 1) {//, std::vector<State>* explored_states = nullptr) {
           if (current_state.is_terminal()) return false;
 
           if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
@@ -184,8 +184,8 @@ namespace msa {
             in(depth) \
             in(white_to_move) \
             inout(best_move) \
-            nocopy(seed) \
-            nocopy(explored_states)
+            nocopy(seed)
+            //nocopy(explored_states)
           #endif
           {
             ChessBoard _board;
@@ -300,7 +300,7 @@ namespace msa {
                 rewards = state.evaluate();
 
                 // add to history
-                if(explored_states) explored_states->push_back(state);
+                //if(explored_states) explored_states->push_back(state);
               }
 
               // 4. BACK PROPAGATION

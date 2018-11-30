@@ -150,6 +150,7 @@ int main(int argc, const char *argv[]) {
     case ChessPlayer::Checkmate:
       printf("Checkmate\n");
       break;
+    /*
     case ChessPlayer::Stalemate:
       printf("Stalemate\n");
       break;
@@ -159,5 +160,10 @@ int main(int argc, const char *argv[]) {
     case ChessPlayer::InCheck:
       printf("Failed to solve puzzle!\n");
       break;
+    */
+    default:
+      break;
   }
+
+  return 0;
 }
