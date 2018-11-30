@@ -163,7 +163,9 @@ namespace msa {
           //timer.init();
 
           //TreeNode* best_node = NULL;
-          Move best_move;
+          Move proven_move;
+          bool found_proven_move = false; 
+
           char square[64];
           for(int pos=0; pos<64; pos++)
             square[pos] = current_state.board.square[pos];
@@ -183,7 +185,8 @@ namespace msa {
             in(white_king_pos) \
             in(depth) \
             in(white_to_move) \
-            inout(best_move) \
+            in(found_proven_move) \
+            inout(proven_move) \
             nocopy(seed)
             //nocopy(explored_states)
           #endif
@@ -205,18 +208,24 @@ namespace msa {
             }
 
             // iterate
-            for(iterations=0; iterations<max_iterations; iterations++) {
+            #pragma omp parallel for \
+              schedule(static) \
+              firstprivate(root_node) \
+              shared(proven_move, found_proven_move)
+            for(unsigned int _iterations=0; _iterations<max_iterations; _iterations++) {
               // indicate start of loop
               //timer.loop_start();
+              if(found_proven_move) continue;
 
               // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
               if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                 //best_node = root_node.proven_child;
                 TreeNode *best_node = root_node.proven_child; 
-                best_move = Move(best_node->get_action().regular);
+                proven_move = Move(best_node->get_action().regular);
+                found_proven_move = true;
                 //if(debug)
-                  printf("Found child with proven victory in iteration %d!\n", iterations);
-                break;
+                  printf("Found child with proven victory in iteration %d!\n", _iterations);
+                continue;
               }
 
               bool found_proven_node = false;
@@ -331,7 +340,7 @@ namespace msa {
           //if(best_node){
           //  final_action = best_node->get_action();
           //}
-          final_action = Action(best_move);        
+          final_action = Action(proven_move);        
 
           return true; 
         }
