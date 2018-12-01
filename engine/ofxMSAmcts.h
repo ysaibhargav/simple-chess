@@ -50,7 +50,7 @@ namespace msa {
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 100000 ),
+          max_iterations( 1000000 ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
@@ -59,7 +59,6 @@ namespace msa {
           minimax_selection_criterion(minimax_selection_criterion),
           num_threads(num_threads)
         {
-          omp_set_num_threads(num_threads);
         }
 
 
@@ -174,23 +173,25 @@ namespace msa {
           unsigned int depth = current_state.depth;
           int white_to_move = current_state.white_to_move;
 
+          printf("Beginning offload to Phi\n");
           #ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
 
           /* This pragma means we want the code in the following block be executed in 
            ** Xeon Phi.
            **/
           #pragma offload target(mic) \
-            in(square) \
+            inout(square) \
             in(black_king_pos) \
             in(white_king_pos) \
             in(depth) \
             in(white_to_move) \
             in(found_proven_move) \
             inout(proven_move) \
-            nocopy(seed)
+            in(seed)
             //nocopy(explored_states)
           #endif
           {
+            printf("Finished offload to Phi\n");
             ChessBoard _board;
             for(int pos=0; pos<64; pos++)
               _board.square[pos] = square[pos];
@@ -207,7 +208,9 @@ namespace msa {
               printf("Num visits is %d\n", root_node.get_num_visits());
             }
 
+            printf("Starting parallel execution\n");
             // iterate
+            omp_set_num_threads(num_threads);
             #pragma omp parallel for \
               schedule(static) \
               firstprivate(root_node) \
@@ -221,10 +224,13 @@ namespace msa {
               if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                 //best_node = root_node.proven_child;
                 TreeNode *best_node = root_node.proven_child; 
-                proven_move = Move(best_node->get_action().regular);
-                found_proven_move = true;
+                #pragma omp critical
+                {
+                  proven_move = Move(best_node->get_action().regular);
+                  found_proven_move = true;
+                }
                 //if(debug)
-                  printf("Found child with proven victory in iteration %d!\n", _iterations);
+                printf("Found child with proven victory in iteration %d!\n", _iterations);
                 continue;
               }
 

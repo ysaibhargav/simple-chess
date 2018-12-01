@@ -58,13 +58,17 @@ namespace msa {
 
             if(!is_root) actions = _actions;
             else {
+                //printf("(expand) Root node state:\n");
+                //this->state.board.print();
                 int tid = omp_get_thread_num();
                 int num_threads = omp_get_num_threads();
+                //printf("(expand) num_threads %d, tid %d\n", num_threads, tid);
                 int num_actions = _actions.size();
                 int span = (num_actions + num_threads - 1) / num_threads;
                 int start_idx = tid * span;
-                int end_idx = std::min(tid + span, num_actions);
+                int end_idx = std::min((tid + 1)*span, num_actions);
                 actions = std::vector< Action >(_actions.begin() + start_idx, _actions.begin() + end_idx);
+                //printf("(expand) Actions size %d, span %d, num_actions from state %d\n", (int)actions.size(), span, num_actions);
             }
 
             // randomize the order
@@ -139,7 +143,7 @@ namespace msa {
           child_state.apply_action(new_action);
 
           // create a new TreeNode with the same state (will get cloned) as this TreeNode
-          TreeNodeT* child_node = new TreeNodeT(child_state, this);
+          TreeNodeT* child_node = new TreeNodeT(child_state, this, false);
 
           // set the action of the child to be the new action
           child_node->action = new_action;
