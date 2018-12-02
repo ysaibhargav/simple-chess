@@ -59,6 +59,7 @@ namespace msa {
           minimax_selection_criterion(minimax_selection_criterion),
           num_threads(num_threads)
         {
+          std::srand(unsigned(time(0)));
         }
 
 
@@ -198,6 +199,7 @@ namespace msa {
             _board.black_king_pos = black_king_pos;
             _board.white_king_pos = white_king_pos;
             
+            bool read_found_proven_move;
             State _current_state(depth, white_to_move, _board); 
             // initialize root TreeNode with current state
             TreeNode root_node(_current_state, NULL, true);
@@ -218,19 +220,32 @@ namespace msa {
             for(unsigned int _iterations=0; _iterations<max_iterations; _iterations++) {
               // indicate start of loop
               //timer.loop_start();
-              if(found_proven_move) continue;
+              #pragma omp atomic read
+              read_found_proven_move = found_proven_move;
+              if(read_found_proven_move) continue;
 
               // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
               if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                 //best_node = root_node.proven_child;
                 TreeNode *best_node = root_node.proven_child; 
+                /*Move write_proven_move(best_node->get_action().regular);
+                #pragma omp atomic write
+                found_proven_move = true;
+                #pragma omp atomic write
+                proven_move.figure = write_proven_move.figure; 
+                #pragma omp atomic write
+                proven_move.from = write_proven_move.from; 
+                #pragma omp atomic write
+                proven_move.to = write_proven_move.to; 
+                #pragma omp atomic write
+                proven_move.capture = write_proven_move.capture;*/ 
                 #pragma omp critical
                 {
                   proven_move = Move(best_node->get_action().regular);
                   found_proven_move = true;
                 }
                 //if(debug)
-                printf("Found child with proven victory in iteration %d!\n", _iterations);
+                printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
                 continue;
               }
 
@@ -247,7 +262,9 @@ namespace msa {
                     (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
                      ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
                   assert(minimax_selection_criterion == NONZERO_WINS);
+                  printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
                   float black_reward = minimax(node->get_state());
+                  printf("Minimax from thread %d finished\n", omp_get_thread_num());
                   if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
                   else node->proved = PROVEN_LOSS;
                   found_proven_node = true;
@@ -341,6 +358,7 @@ namespace msa {
               //if(max_millis > 0 && timer.check_duration(max_millis)) break;
             }
           } // end mic
+          printf("Finished parallel execution\n");
 
           // return best node's action
           //if(best_node){

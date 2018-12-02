@@ -2,8 +2,8 @@
 # generate jobs in batch
 
 threads=(1 2 4 8) # The number of threads 
-inputs=(puzzles/4.txt) # The name of the input files
-depths=(3)
+inputs=(puzzles/5-4.txt) # The name of the input files
+depths=(4)
 rm -f *.job
 
 for f in ${inputs[@]}
