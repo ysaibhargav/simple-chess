@@ -10,6 +10,9 @@
 #define INF 9
 #define VICTORY 1
 #define LOSS 0
+namespace msa{
+namespace mcts{
+
 __device__ float
 max(float a, float b) {
     return a<b?b:a;
@@ -36,7 +39,8 @@ minimax(State state){
         } 
         return LOSS;
     }
-    if(state.white_to_move){
+    //if(state.white_to_move){
+    else {
         float value = INF;
         std::vector<Action> actions;
         state.get_actions(actions); 
@@ -52,16 +56,17 @@ minimax(State state){
 }
 
 __global__ void
-minim_kernel(State* s, std::vector<Action> a, char* res) {
+minim_kernel(State* s, Action *a, char* res, int len) {
     // get State and Action corresponding to index
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(index >= a.size()) return;
+    if(index >= len) return;
     //Assume one state
-    State state = (*s).apply_action(a[index]);
+    State state = State(s->depth, s->white_to_move, s->board);
+    state.apply_action(a[index]);
     
     if(state.is_terminal())
-        return state.evaluate_minimax(); 
+        res[index] = state.evaluate_minimax(); 
 
     if(!state.white_to_move){
         float value = -INF;
@@ -97,7 +102,7 @@ minim_kernel(State* s, std::vector<Action> a, char* res) {
 
 Action
 minimaxCuda(State state) {
-    std::vector<Action>* act;
+    //std::vector<Action>* act;
     State* s;
     int numState = 1;
     char* res;
@@ -106,15 +111,16 @@ minimaxCuda(State state) {
 
     const int threadsPerBlock = 512;
 
+    std::vector<Action> actions;
+    state.get_actions(actions);
+    len = actions.size();
+    const int blocks = (len + threadsPerBlock - 1)/threadsPerBlock;
+    Action *act = &actions[0];
+
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
     if(!state.white_to_move){
         float value = -INF;
-        std::vector<Action> actions;
-        state.get_actions(actions);
-        len = actions.size();
-        const int blocks = (len + 
-                threadsPerBlock - 1)/threadsPerBlock;
 
         resultarray = (char*)malloc(sizeof(char)*actions.size());
         // execute kernel
@@ -123,12 +129,12 @@ minimaxCuda(State state) {
         cudaMalloc((void**)&act, sizeof(Action) * len);
         cudaMalloc((void**)&res, sizeof(char) * len);
 
-        cudaMemcpy(s, state, sizeof(State)*numState, 
+        cudaMemcpy(s, (void *)&state, sizeof(State)*numState, 
                 cudaMemcpyHostToDevice);
-        cudaMemcpy(act, actions, sizeof(Action)*len, 
+        cudaMemcpy(act, actions.data(), sizeof(Action)*len, 
                 cudaMemcpyHostToDevice);
         // execute kernel
-        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res);
+        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res, len);
 
         cudaThreadSynchronize();
 
@@ -146,7 +152,7 @@ minimaxCuda(State state) {
         
         for(int i = 0; i < len; i++) {
             if(resultarray[i] == VICTORY)
-                return Action(actions[i]->regular, actions[i]->nulls, value);
+                return Action(actions.at(i).regular, actions.at(i).nulls, value);
             else
                 value = value < resultarray[i] ? resultarray[i] : value;
         }
@@ -155,17 +161,10 @@ minimaxCuda(State state) {
         //value = max(value, minimax(next_state));
         //if(value == VICTORY)
             //return Action(it->regular, it->nulls, value);
-        }
-    return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+        return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
     }
-    if(state.white_to_move){
+    else {
         float value = INF;
-        std::vector<Action> actions;
-        state.get_actions(actions);
-        len = actions.size();
-        //execute kernel
-        const int blocks = (len +
-                threadsPerBlock - 1)/threadsPerBlock;
          
         resultarray = (char*)malloc(sizeof(char)*len);
          // execute kernel
@@ -174,12 +173,12 @@ minimaxCuda(State state) {
         cudaMalloc((void**)&act, sizeof(Action) * len);
         cudaMalloc((void**)&res, sizeof(char) * len);
          
-        cudaMemcpy(s, state, sizeof(State)*numState,
+        cudaMemcpy(s, &state, sizeof(State)*numState,
                 cudaMemcpyHostToDevice);
-        cudaMemcpy(act, actions, sizeof(Action)*len,
+        cudaMemcpy(act, actions.data(), sizeof(Action)*len,
                 cudaMemcpyHostToDevice);
          // execute kernel
-        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res);
+        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res, len);
          
         cudaThreadSynchronize();
          
@@ -194,14 +193,13 @@ minimaxCuda(State state) {
         
         for(int i = 0; i < len; i++) {
             if(resultarray[i] == LOSS)
-              return Action(actions[i]->regular, actions[i]->nulls, value);
+              return Action(actions.at(i).regular, actions.at(i).nulls, value);
             else
               value = value > resultarray[i] ? resultarray[i] : value;
         }
         free(resultarray);
-
-        
-    }
-    return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+        return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
   }
+}
+}
 }

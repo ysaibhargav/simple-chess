@@ -22,7 +22,7 @@ else
 LDFLAGS=-L/usr/local/depot/cuda-8.0/lib64/ -lcudart
 endif
 NVCC=nvcc
-NVCCFLAGS=-O3 -m64 --gpu-architecture compute_35
+NVCCFLAGS=-O3 -m64 -std=c++11 --gpu-architecture compute_35
 
 
 OBJS=$(OBJDIR)/playchess.o  $(OBJDIR)/mini.o

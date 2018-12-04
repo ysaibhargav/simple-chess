@@ -10,11 +10,13 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 #include "MSALoopTimer.h"
 #include "minimax.h"
 #include <cfloat>
+
+//#include "mini.cu"
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
 
-Action minimaxCuda(State state);
+//Action minimaxCuda(State state);
 
 namespace msa {
     namespace mcts {
@@ -24,7 +26,7 @@ namespace msa {
         template <class State, typename Action>
         class UCT {
             typedef TreeNodeT<State, Action> TreeNode;
-
+            Action minimaxCuda(State state);
         private:
             LoopTimer timer;
             int iterations;

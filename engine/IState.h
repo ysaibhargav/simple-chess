@@ -53,7 +53,7 @@ class Action {
 class State {
 
     public:
-        State(int depth, int white_to_move, ChessBoard board):
+        __host__ __device__ State(int depth, int white_to_move, ChessBoard board):
             depth(depth),
             white_to_move(white_to_move),
             board(board)
@@ -66,7 +66,7 @@ class State {
         //State& operator = (const State& other);
 
         // whether or not this state is terminal (reached end)
-        const bool is_terminal() {
+        __host__ __device__ const bool is_terminal() {
             // for mate in n puzzles, we do not want to look at nodes deeper than n
             if (depth == 0 && white_to_move)
                 return true;
@@ -84,7 +84,7 @@ class State {
         } 
 
         // apply action to state
-        void apply_action(const Action& action) {
+        __host__ __device__ void apply_action(const Action& action) {
             // if it's white's turn, decrease depth value 
             if (!white_to_move) depth--;
             // toggle player color
@@ -98,7 +98,7 @@ class State {
         }
 
         // return possible actions from this state
-        void get_actions(std::vector<Action>& actions) {
+        __host__ __device__ void get_actions(std::vector<Action>& actions) {
             // sanity check
             if (is_terminal()) return;            
 
@@ -112,7 +112,7 @@ class State {
         }
 
         // get a random action, return false if no actions found
-        bool get_random_action(Action& action) {
+        __host__ __device__ bool get_random_action(Action& action) {
             if (is_terminal()) return false;
 
             std::vector<Action> actions;
@@ -120,15 +120,17 @@ class State {
             if (actions.size() == 0) return false;
             
             // TODO(sai): make the generator a class member
-            std::default_random_engine generator;
-            std::uniform_int_distribution<int> dis(0, actions.size()-1);
-            action = actions[dis(generator)];
+            //std::default_random_engine generator;
+            //std::uniform_int_distribution<int> dis(0, actions.size()-1);
+            int index = rand()/RAND_MAX*actions.size();
+            action = actions[index];
+            //action = actions[dis(generator)];
 
             return true;
         }
 
         // evaluate this state and return a vector of rewards (for each agent)
-        const std::vector<float> evaluate() {
+        __host__ __device__ const std::vector<float> evaluate() {
             // TODO(sai): implement logic for 2 player AI
             // TODO(sai): sanity check
 
@@ -145,18 +147,18 @@ class State {
             return loss;
         } 
 
-        const float evaluate_minimax() {
+        __host__ __device__ const float evaluate_minimax() {
             return evaluate()[BLACK_ID];
         }
 
         // return state as string (for debug purposes)
         std::string to_string() const;
 
-        int get_color() {
+        __host__ __device__ int get_color() {
             return white_to_move ? WHITE : BLACK;
         }
 
-        void get_maintenance_moves(Action &action) {
+        __host__ __device__ void get_maintenance_moves(Action &action) {
             std::list<Move> regulars;
             board.getMoves(get_color(), regulars, regulars, action.nulls);
         }
