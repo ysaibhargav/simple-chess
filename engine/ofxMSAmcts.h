@@ -14,6 +14,8 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 #define ALWAYS 0
 #define NONZERO_WINS 1
 
+Action minimaxCuda(State state);
+
 namespace msa {
     namespace mcts {
 
@@ -132,7 +134,8 @@ namespace msa {
                 if (current_state.is_terminal()) return false;
 
                 if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
-                    final_action = minimax2(State(current_state));
+                    //final_action = minimax2(State(current_state));
+                    final_action = minimaxCuda(State(current_state));
                     return true;
                 }
 

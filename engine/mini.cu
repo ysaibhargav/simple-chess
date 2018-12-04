@@ -7,12 +7,17 @@
 #include "IState.h"
 #include <vector>
 
-#include "mini.h"
-
 #define INF 9
 #define VICTORY 1
 #define LOSS 0
-
+__device__ float
+max(float a, float b) {
+    return a<b?b:a;
+}
+__device__ float
+min(float a, float b) {
+    return a>b?b:a;
+}
 __device__ float
 minimax(State state){
     if(state.is_terminal())
@@ -47,11 +52,11 @@ minimax(State state){
 }
 
 __global__ void
-minim_kernel(State* s, Action* a, char* res) {
+minim_kernel(State* s, std::vector<Action> a, char* res) {
     // get State and Action corresponding to index
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(index >= a.length()) return;
+    if(index >= a.size()) return;
     //Assume one state
     State state = (*s).apply_action(a[index]);
     
@@ -97,6 +102,7 @@ minimaxCuda(State state) {
     int numState = 1;
     char* res;
     char* resultarray;
+    int len;
 
     const int threadsPerBlock = 512;
 
@@ -106,26 +112,27 @@ minimaxCuda(State state) {
         float value = -INF;
         std::vector<Action> actions;
         state.get_actions(actions);
-        const int blocks = (actions.length() + 
+        len = actions.size();
+        const int blocks = (len + 
                 threadsPerBlock - 1)/threadsPerBlock;
 
-        resultarray = (char*)malloc(sizeof(char)*actions.length());
+        resultarray = (char*)malloc(sizeof(char)*actions.size());
         // execute kernel
         // pass values to GPU
         cudaMalloc((void**)&s, sizeof(State) * numState);
-        cudaMalloc((void**)&act, sizeof(Action) * actions.length());
-        cudaMalloc((void**)&res, sizeof(char) * actions.length());
+        cudaMalloc((void**)&act, sizeof(Action) * len);
+        cudaMalloc((void**)&res, sizeof(char) * len);
 
         cudaMemcpy(s, state, sizeof(State)*numState, 
                 cudaMemcpyHostToDevice);
-        cudaMemcpy(act, actions, sizeof(Action)*actions.length(), 
+        cudaMemcpy(act, actions, sizeof(Action)*len, 
                 cudaMemcpyHostToDevice);
         // execute kernel
         minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res);
 
         cudaThreadSynchronize();
 
-        cudaMemcpy(resultarray, res, sizeof(char)*actions.length(), 
+        cudaMemcpy(resultarray, res, sizeof(char)*len, 
                 cudaMemcpyDeviceToHost);
 
         //free values
@@ -137,11 +144,11 @@ minimaxCuda(State state) {
 
         //free(resultarray);
         
-        for(int i = 0; i < actions.length(); i++) {
+        for(int i = 0; i < len; i++) {
             if(resultarray[i] == VICTORY)
                 return Action(actions[i]->regular, actions[i]->nulls, value);
             else
-                value = max(value, resultarray[i]);
+                value = value < resultarray[i] ? resultarray[i] : value;
         }
         free(resultarray);
 
@@ -155,13 +162,46 @@ minimaxCuda(State state) {
         float value = INF;
         std::vector<Action> actions;
         state.get_actions(actions);
+        len = actions.size();
         //execute kernel
-
-
-        value = min(value, minimax(next_state));
-        if(value == LOSS)
-            return Action(it->regular, it->nulls, value);
+        const int blocks = (len +
+                threadsPerBlock - 1)/threadsPerBlock;
+         
+        resultarray = (char*)malloc(sizeof(char)*len);
+         // execute kernel
+         // pass values to GPU
+        cudaMalloc((void**)&s, sizeof(State) * numState);
+        cudaMalloc((void**)&act, sizeof(Action) * len);
+        cudaMalloc((void**)&res, sizeof(char) * len);
+         
+        cudaMemcpy(s, state, sizeof(State)*numState,
+                cudaMemcpyHostToDevice);
+        cudaMemcpy(act, actions, sizeof(Action)*len,
+                cudaMemcpyHostToDevice);
+         // execute kernel
+        minim_kernel<<<blocks, threadsPerBlock>>>(s, act, res);
+         
+        cudaThreadSynchronize();
+         
+        cudaMemcpy(resultarray, res, sizeof(char)*len,
+                cudaMemcpyDeviceToHost);
+         
+        //free values
+        cudaFree(s);
+        cudaFree(act);
+        cudaFree(res);
+        //use resultarray
+        
+        for(int i = 0; i < len; i++) {
+            if(resultarray[i] == LOSS)
+              return Action(actions[i]->regular, actions[i]->nulls, value);
+            else
+              value = value > resultarray[i] ? resultarray[i] : value;
         }
+        free(resultarray);
+
+        
+    }
     return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
   }
 }
