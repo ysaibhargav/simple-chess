@@ -25,7 +25,7 @@ NVCC=nvcc
 NVCCFLAGS=-O3 -m64 -std=c++11 --gpu-architecture compute_35
 
 
-OBJS=$(OBJDIR)/playchess.o  $(OBJDIR)/mini.o
+OBJS=$(OBJDIR)/playchess.o  $(OBJDIR)/mini.o $(OBJDIR)/chessboard.o $(OBJDIR)/humanplayer.o $(OBJDIR)/aiplayer.o
 
 
 .PHONY: dirs clean

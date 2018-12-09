@@ -6,35 +6,49 @@
 
 #include "IState.h"
 #include <vector>
+//#include <thrust/device_vector.h>
 
 #define INF 9
 #define VICTORY 1
 #define LOSS 0
+#define MSIZE 100
 namespace msa{
 namespace mcts{
 
 __device__ float
-max(float a, float b) {
+max_cuda(float a, float b) {
     return a<b?b:a;
 }
 __device__ float
-min(float a, float b) {
+min_cuda(float a, float b) {
     return a>b?b:a;
 }
 __device__ float
-minimax(State state){
-    if(state.is_terminal())
-        return state.evaluate_minimax(); 
+minimax_cuda(State state){
+    //malloc/allocate Move array of length 100
+    Move move[MSIZE];
+    int i = 0;
+    //pass empty array to is_terminal to be filled
+    //pass int i to find length filled
+    if(state.is_terminal_cuda(move, true, &i))
+        return state.evaluate_minimax_cuda(move, &i); 
 
     if(!state.white_to_move){
         float value = -INF;
-        std::vector<Action> actions;
-        state.get_actions(actions); 
-        for(std::vector<Action>::iterator it=actions.begin(); 
-                it!=actions.end(); it++) {
+        
+        //get actions here from move array or pass move array to get_actions_cuda
+        
+        //thrust::device_vector<Action> actions;
+        //state.get_actions_cuda(actions);
+        //iterate over actions array        
+        for(int j = 0; j < i; j++) {
             State next_state = state;
-            next_state.apply_action(*it);
-            value = max(value, minimax(next_state));
+            //retrieve move and apply it
+            
+            if(!state.board.isValidMove_cuda(state.get_color(), move[j])) continue;
+            next_state.apply_action_cuda(Action_cuda(move[j]));
+            
+            value = max_cuda(value, minimax_cuda(next_state));
             if(value == VICTORY) return value;
         } 
         return LOSS;
@@ -42,13 +56,15 @@ minimax(State state){
     //if(state.white_to_move){
     else {
         float value = INF;
-        std::vector<Action> actions;
-        state.get_actions(actions); 
-        for(std::vector<Action>::iterator it=actions.begin();
-                it!=actions.end(); it++) {
+        //thrust::device_vector<Action> actions;
+        //state.get_actions_cuda(actions); 
+        for(int j = 0; j < i; j++) {
             State next_state = state;
-            next_state.apply_action(*it);
-            value = min(value, minimax(next_state));
+            
+            if(!state.board.isValidMove_cuda(state.get_color(), move[j])) continue;
+            next_state.apply_action_cuda(Action_cuda(move[j]));
+            
+            value = min_cuda(value, minimax_cuda(next_state));
             if(value == LOSS) return value;
         } 
         return VICTORY;
@@ -63,37 +79,51 @@ minim_kernel(State* s, Action *a, char* res, int len) {
     if(index >= len) return;
     //Assume one state
     State state = State(s->depth, s->white_to_move, s->board);
-    state.apply_action(a[index]);
+    Action_cuda ain = Action_cuda(a[index].regular, a[index].minimax_value);
+    //ain.regular = a[index].regular;
+    //ain.minimax_value = a[index].minimax_value;
+    state.apply_action_cuda(ain);
     
-    if(state.is_terminal())
-        res[index] = state.evaluate_minimax(); 
+    Move move[MSIZE];
+    int i = 0;    
+    if(state.is_terminal_cuda(move, true, &i)) {
+        res[index] = state.evaluate_minimax_cuda(move, &i);
+        return;
+    }        
 
     if(!state.white_to_move){
         float value = -INF;
-        std::vector<Action> actions;
-        state.get_actions(actions); 
-        for(std::vector<Action>::iterator it=actions.begin(); 
-                it!=actions.end(); it++) {
+        //thrust::device_vector<Action> actions;
+        //state.get_actions_cuda(actions); 
+        for(int j = 0; j < i; j++) {
             State next_state = state;
-            next_state.apply_action(*it);
-            value = max(value, minimax(next_state));
-            if(value == VICTORY)
+            //don't need to get actions, we don't set minimax value in search
+            if(!state.board.isValidMove_cuda(state.get_color(), move[i])) continue;
+            Action_cuda a = Action_cuda(move[j]);
+            next_state.apply_action_cuda(a);
+            value = max_cuda(value, minimax_cuda(next_state));
+            if(value == VICTORY) {
                 res[index] = value;
+                return;
+            }
         } 
         res[index] = LOSS;
+        return;
     }
 
     if(state.white_to_move){
         float value = INF;
-        std::vector<Action> actions;
-        state.get_actions(actions); 
-        for(std::vector<Action>::iterator it=actions.begin(); 
-                it!=actions.end(); it++) {
+        //thrust::device_vector<Action> actions;
+        //state.get_actions_cuda(actions); 
+        for(int j = 0; j < i; j++) {
             State next_state = state;
-            next_state.apply_action(*it);
-            value = min(value, minimax(next_state));
-            if(value == LOSS)
+            if(!state.board.isValidMove_cuda(state.get_color(), move[i])) continue;
+            next_state.apply_action_cuda(Action_cuda(move[j]));
+            value = min_cuda(value, minimax_cuda(next_state));
+            if(value == LOSS) {
                 res[index] = value;
+                return;
+            }
         } 
         res[index] = VICTORY;
     }
@@ -191,6 +221,7 @@ minimaxCuda(State state) {
         cudaFree(res);
         //use resultarray
         
+        //remove nulls?
         for(int i = 0; i < len; i++) {
             if(resultarray[i] == LOSS)
               return Action(actions.at(i).regular, actions.at(i).nulls, value);

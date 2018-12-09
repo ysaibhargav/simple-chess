@@ -9,6 +9,18 @@
 #include "chessboard.h"
 #include "chessplayer.h"
 
+//#include <thrust/device_vector.h>
+
+#define MSIZE 100
+
+#ifdef __CUDA_ARCH__
+#define DEV __device__
+#define HOST __host__
+#else
+#define DEV
+#define HOST
+#endif
+
 using namespace std;
 
 void Move::print(void) const {
@@ -1124,7 +1136,886 @@ void ChessBoard::getKingMoves(int figure, int pos, list<Move> & moves, list<Move
 	}
 }
 
-bool ChessBoard::isVulnerable(int pos, int figure) const
+DEV void ChessBoard::getMoves_cuda(int color, 
+        Move *moves, 
+        Move *captures, int *i)
+{
+	int pos, figure;
+    *i = 0;
+	
+	for(pos = 0; pos < 64; pos++)
+	{
+		if((figure = this->square[pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) == color)
+			{
+				switch(FIGURE(figure))
+				{
+					case PAWN:
+						getPawnMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					case ROOK:
+						getRookMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					case KNIGHT:
+						getKnightMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					case BISHOP:
+						getBishopMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					case QUEEN:
+						getQueenMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					case KING:
+						getKingMoves_cuda(figure, pos, moves, captures, i);
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+}
+
+DEV void ChessBoard::getPawnMoves_cuda(int figure, int pos, 
+        Move *moves, 
+        Move *captures, int *i) const
+{
+	Move new_move;
+	int target_pos, target_figure;
+
+	// If pawn was previously en passant candidate victim, it isn't anymore.
+	// This is a null move because it has to be executed no matter what.
+	if(IS_PASSANT(figure))
+	{
+		new_move.figure = CLEAR_PASSANT(figure);
+		new_move.from = pos;
+		new_move.to = pos;
+		new_move.capture = figure;
+		//null_moves.push_back(new_move);
+		
+		figure = CLEAR_PASSANT(figure);
+	}
+
+	// Of course, we only have to set this once
+	new_move.figure = figure;
+	new_move.from = pos;
+
+	// 1. One step ahead
+	target_pos = IS_BLACK(figure) ? pos - 8 : pos + 8;
+	if((target_pos >= 0) && (target_pos < 64))
+	{
+		if((target_figure = this->square[target_pos]) == EMPTY)
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+			
+			// 2. Two steps ahead if unmoved
+			if(!IS_MOVED(figure))
+			{
+				target_pos = IS_BLACK(figure) ? pos - 16 : pos + 16;
+				if((target_pos >= 0) && (target_pos < 64))
+				{
+					if((target_figure = this->square[target_pos]) == EMPTY)
+					{
+						new_move.to = target_pos;
+						new_move.capture = target_figure;
+
+						// set passant attribute and clear it later
+						new_move.figure = SET_PASSANT(figure);
+						moves[*i] = new_move;
+                        (*i)++;
+						new_move.figure = figure;
+					}
+				}
+			} // END 2.
+		}
+	} // END 1.
+	
+	// 3. Forward capture (White left; Black right)
+	if(pos % 8 != 0)
+	{
+		target_pos = IS_BLACK(figure) ? pos - 9 : pos + 7;
+		if((target_pos >= 0) && (target_pos < 64))
+		{
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.to = target_pos;
+					new_move.capture = target_figure;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				// En passant?
+				target_figure = this->square[pos - 1];
+				if(IS_PASSANT(target_figure))
+				{
+					if(IS_BLACK(target_figure) != IS_BLACK(figure))
+					{
+						new_move.to = target_pos;
+						new_move.capture = target_figure;
+						captures[*i] = new_move;
+                        (*i)++;
+					}				
+				}
+			}
+		}
+	}
+	
+	// 4. Forward capture (White right; Black left)
+	if(pos % 8 != 7)
+	{
+		target_pos = IS_BLACK(figure) ? pos - 7 : pos + 9;
+		if((target_pos >= 0) && (target_pos < 64))
+		{
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.to = target_pos;
+					new_move.capture = target_figure;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				// En passant?
+				target_figure = this->square[pos + 1];
+				if(IS_PASSANT(target_figure))
+				{
+					if(IS_BLACK(target_figure) != IS_BLACK(figure))
+					{
+						new_move.to = target_pos;
+						new_move.capture = target_figure;
+						captures[*i] = new_move;
+                        (*i)++;
+					}				
+				}
+			}
+		}
+	}	
+}
+
+DEV void ChessBoard::getRookMoves_cuda(int figure, int pos, 
+        Move *moves, 
+        Move *captures, int *i) const
+{
+	Move new_move;
+	int target_pos, target_figure, end;
+
+	// Of course, we only have to set this once
+	new_move.figure = figure;
+	new_move.from = pos;
+
+	// 1. Move up
+	for(target_pos = pos + 8; target_pos < 64; target_pos += 8)
+	{
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+	}
+
+	// 2. Move down
+	for(target_pos = pos - 8; target_pos >= 0; target_pos -= 8)
+	{	
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+	}
+
+	// 3. Move left
+	for(target_pos = pos - 1, end = pos - (pos % 8); target_pos >= end; target_pos--)
+	{
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+	}
+
+	// 4. Move right
+	for(target_pos = pos + 1, end = pos + (8 - pos % 8); target_pos < end; target_pos++)
+	{
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+	}
+}
+
+DEV void ChessBoard::getKnightMoves_cuda(int figure, int pos, 
+        Move *moves, 
+        Move *captures, int *i) const
+{
+	Move new_move;
+	int target_pos, target_figure, row, col;
+
+	// Of course, we only have to set this once
+	new_move.figure = figure;
+	new_move.from = pos;
+
+	// Determine row and column
+	row = pos / 8;
+	col = pos % 8;
+
+	// 1. Upper positions
+	if(row < 6)
+	{
+		// right
+		if(col < 7)
+		{
+			target_pos = pos + 17;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// left
+		if(col > 0)
+		{
+			target_pos = pos + 15;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}		
+		}
+	}
+	
+	// 2. Lower positions
+	if(row > 1)
+	{
+		// right
+		if(col < 7)
+		{
+			target_pos = pos - 15;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// left
+		if(col > 0)
+		{
+			target_pos = pos - 17;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}		
+		}
+	}
+
+	// 3. Right positions
+	if(col < 6)
+	{
+		// up
+		if(row < 7)
+		{
+			target_pos = pos + 10;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// down
+		if(row > 0)
+		{
+			target_pos = pos - 6;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}		
+		}
+	}
+
+	// 4. Left positions
+	if(col > 1)
+	{
+		// up
+		if(row < 7)
+		{
+			target_pos = pos + 6;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// down
+		if(row > 0)
+		{
+			target_pos = pos - 10;
+		
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(figure) != IS_BLACK(target_figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				moves[*i] = new_move;
+                (*i)++;
+			}		
+		}
+	}	
+}
+
+DEV void ChessBoard::getBishopMoves_cuda(int figure, int pos, 
+        Move *moves, 
+        Move *captures, int *loc) const
+{
+	Move new_move;
+	int target_pos, target_figure, row, col, i, j;
+
+	// Of course, we only have to set this once
+	new_move.figure = figure;
+	new_move.from = pos;
+
+	// Determine row and column
+	row = pos / 8;
+	col = pos % 8;
+
+	// 1. Go north-east
+	for(i = row + 1, j = col + 1; (i < 8) && (j < 8); i++, j++)
+	{
+		target_pos = i * 8 + j;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*loc] = new_move;
+                (*loc)++;
+			}
+
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*loc] = new_move;
+            (*loc)++;
+		}
+	}
+	
+	// 2. Go south-east
+	for(i = row - 1, j = col + 1; (i >= 0) && (j < 8); i--, j++)
+	{
+		target_pos = i * 8 + j;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*loc] = new_move;
+                (*loc)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*loc] = new_move;
+            (*loc)++;
+		}
+	}
+
+	// 3. Go south-west
+	for(i = row - 1, j = col - 1; (i >= 0) && (j >= 0); i--, j--)
+	{
+		target_pos = i * 8 + j;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*loc] = new_move;
+                (*loc)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*loc] = new_move;
+            (*loc)++;
+		}
+	}
+
+	// 4. Go north-west
+	for(i = row + 1, j = col - 1; (i < 8) && (j >= 0); i++, j--)
+	{
+		target_pos = i * 8 + j;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(figure) != IS_BLACK(target_figure))
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				captures[*loc] = new_move;
+                (*loc)++;
+			}
+			
+			break;
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*loc] = new_move;
+            (*loc)++;
+		}
+	}
+}
+
+DEV void ChessBoard::getQueenMoves_cuda(int figure, int pos, Move *moves, 
+        Move *captures, int *i) const
+{
+	// Queen is just the "cartesian product" of Rook and Bishop
+	this->getRookMoves_cuda(figure, pos, moves, captures, i);
+	this->getBishopMoves_cuda(figure, pos, moves, captures, i);
+}
+
+
+DEV void ChessBoard::getKingMoves_cuda(int figure, int pos, Move *moves,
+        Move *captures, int *i)
+{
+	Move new_move;
+	int target_pos, target_figure, row, col;
+
+	// Of course, we only have to set this once
+	new_move.figure = figure;
+	new_move.from = pos;
+
+	// Determine row and column
+	row = pos / 8;
+	col = pos % 8;
+
+	// 1. Move left
+	if(col > 0)
+	{
+		// 1.1 up
+		if(row < 7)
+		{
+			target_pos = pos + 7;
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// 1.2 middle
+		target_pos = pos - 1;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(target_figure) != IS_BLACK(figure))
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+		
+		// 1.3 down
+		if(row > 0)
+		{
+			target_pos = pos - 9;
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+	}
+	
+	// 2. Move right
+	if(col < 7)
+	{
+		// 2.1 up
+		if(row < 7)
+		{
+			target_pos = pos + 9;
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+		
+		// 2.2 middle
+		target_pos = pos + 1;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(target_figure) != IS_BLACK(figure))
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}
+		
+		// 2.3 down
+		if(row > 0)
+		{
+			target_pos = pos - 7;
+			if((target_figure = this->square[target_pos]) != EMPTY)
+			{
+				if(IS_BLACK(target_figure) != IS_BLACK(figure))
+				{
+					new_move.capture = target_figure;
+					new_move.to = target_pos;
+					captures[*i] = new_move;
+                    (*i)++;
+				}
+			}
+			else
+			{
+				new_move.to = target_pos;
+				new_move.capture = target_figure;
+				moves[*i] = new_move;
+                (*i)++;
+			}
+		}
+	}
+	
+	// 3. straight up
+	if(row < 7)
+	{
+		// 2.2 middle
+		target_pos = pos + 8;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(target_figure) != IS_BLACK(figure))
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}	
+	}
+	
+	// 4. straight down
+	if(row > 0)
+	{
+		// 2.2 middle
+		target_pos = pos - 8;
+		if((target_figure = this->square[target_pos]) != EMPTY)
+		{
+			if(IS_BLACK(target_figure) != IS_BLACK(figure))
+			{
+				new_move.capture = target_figure;
+				new_move.to = target_pos;
+				captures[*i] = new_move;
+                (*i)++;
+			}
+		}
+		else
+		{
+			new_move.to = target_pos;
+			new_move.capture = target_figure;
+			moves[*i] = new_move;
+            (*i)++;
+		}	
+	}
+
+	// 5. Castling
+	if(!IS_MOVED(figure) && !isVulnerable(pos, figure))
+	{
+		// short
+		target_pos = IS_BLACK(figure) ? F8 : F1;
+		if((this->square[target_pos] == EMPTY) && !isVulnerable(target_pos, figure))
+		{
+			target_pos = IS_BLACK(figure) ? G8 : G1;
+			if((this->square[target_pos] == EMPTY) && !isVulnerable(target_pos, figure))
+			{
+				target_pos = IS_BLACK(figure) ? H8 : H1;
+				target_figure = this->square[target_pos];
+				if(!IS_MOVED(target_figure) && (FIGURE(target_figure) == ROOK) && !isVulnerable(target_pos, figure))
+				{
+					if(IS_BLACK(target_figure) == IS_BLACK(figure))
+					{
+						new_move.capture = EMPTY;
+						new_move.to = IS_BLACK(figure) ? G8 : G1;
+						moves[*i] = new_move;
+                        (*i)++;
+					}
+				}
+			}
+		}
+		
+		// long
+		target_pos = IS_BLACK(figure) ? B8 : B1;
+		if((this->square[target_pos] == EMPTY) && !isVulnerable(target_pos, figure))
+		{
+			target_pos = IS_BLACK(figure) ? C8 : C1;
+			if((this->square[target_pos] == EMPTY) && !isVulnerable(target_pos, figure))
+			{
+				target_pos = IS_BLACK(figure) ? D8 : D1;
+				if((this->square[target_pos] == EMPTY) && !isVulnerable(target_pos, figure))
+				{
+					target_pos = IS_BLACK(figure) ? A8 : A1;
+					target_figure = this->square[target_pos];
+					if(!IS_MOVED(target_figure) && (FIGURE(target_figure) == ROOK) && !isVulnerable(target_pos, figure))
+					{
+						if(IS_BLACK(target_figure) == IS_BLACK(figure))
+						{
+							new_move.capture = EMPTY;
+							new_move.to = IS_BLACK(figure) ? C8 : C1;
+							moves[*i] = new_move;
+                            (*i)++;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+HOST DEV bool ChessBoard::isVulnerable(int pos, int figure) const
 {
 	int target_pos, target_figure, row, col, i,j, end;
 
@@ -1466,6 +2357,30 @@ bool ChessBoard::isValidMove(int color, Move & move)
 	return valid;
 }
 
+DEV bool ChessBoard::isValidMove_cuda(int color, Move & move)
+{
+	bool valid = false;
+	Move regulars[MSIZE];
+    int i = 0;
+
+	getMoves_cuda(color, regulars, regulars, &i);
+
+	for(int j = 0; j < i && !valid; j++)
+	{
+		if(move.from == regulars[j].from && move.to == regulars[j].to)
+		{
+			move = regulars[j];
+
+			this->move(move);
+			if(!isVulnerable(color ? black_king_pos : white_king_pos, color))
+				valid = true;
+			undoMove(regulars[j]);
+		}
+	}
+
+	return valid;
+}
+
 ChessPlayer::Status ChessBoard::getPlayerStatus(int color)
 {
 	bool king_vulnerable = false, can_move = false;
@@ -1496,7 +2411,41 @@ ChessPlayer::Status ChessBoard::getPlayerStatus(int color)
 	return ChessPlayer::Normal;
 }
 
-void ChessBoard::move(const Move & move)
+DEV ChessPlayer::Status ChessBoard::getPlayerStatus_cuda(int color,
+        Move *act, bool writeflag, int *i)
+{
+	bool king_vulnerable = false, can_move = false;
+	//Action *nulls;
+
+    if(writeflag) {
+	    getMoves_cuda(color, act, act, i);
+    }
+
+	if(isVulnerable(color ? black_king_pos : white_king_pos, color))
+		king_vulnerable = true;
+
+    //loop length
+	for(int j = 0; j < *i && !can_move; j++)
+	{
+		this->move(act[j]);
+		if(!isVulnerable(color ? black_king_pos : white_king_pos, color))
+		{
+			can_move = true;
+		}
+		undoMove(act[j]);
+	}
+
+	if(king_vulnerable && can_move)
+		return ChessPlayer::InCheck;
+	if(king_vulnerable && !can_move)
+		return ChessPlayer::Checkmate;
+	if(!king_vulnerable && !can_move)
+		return ChessPlayer::Stalemate;
+
+	return ChessPlayer::Normal;
+}
+
+HOST DEV void ChessBoard::move(const Move & move)
 {
 	// kings and pawns receive special treatment
 	switch(FIGURE(move.figure))
@@ -1516,7 +2465,7 @@ void ChessBoard::move(const Move & move)
 	}
 }
 
-void ChessBoard::undoMove(const Move & move)
+HOST DEV void ChessBoard::undoMove(const Move & move)
 {
 	// kings and pawns receive special treatment
 	switch(FIGURE(move.figure))
@@ -1536,7 +2485,7 @@ void ChessBoard::undoMove(const Move & move)
 	}
 }
 
-void ChessBoard::movePawn(const Move & move)
+HOST DEV void ChessBoard::movePawn(const Move & move)
 {
 	int capture_field;
 
@@ -1574,7 +2523,7 @@ void ChessBoard::movePawn(const Move & move)
 	}
 }
 
-void ChessBoard::undoMovePawn(const Move & move)
+HOST DEV void ChessBoard::undoMovePawn(const Move & move)
 {
 	int capture_field;
 
@@ -1612,7 +2561,7 @@ void ChessBoard::undoMovePawn(const Move & move)
 	}
 }
 
-void ChessBoard::moveKing(const Move & move)
+HOST DEV void ChessBoard::moveKing(const Move & move)
 {
 	// check for castling
 	if(!IS_MOVED(move.figure))
@@ -1653,7 +2602,7 @@ void ChessBoard::moveKing(const Move & move)
 	}
 }
 
-void ChessBoard::undoMoveKing(const Move & move)
+HOST DEV void ChessBoard::undoMoveKing(const Move & move)
 {
 	// check for castling
 	if(!IS_MOVED(move.figure))

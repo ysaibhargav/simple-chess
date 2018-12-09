@@ -3,6 +3,9 @@
 
 #include "chessplayer.h"
 #include <string>
+
+//#include <thrust/device_vector.h>
+
 // Pieces defined in lower 4 bits
 #define EMPTY	0x00	// Empty square
 #define PAWN	0x01	// Bauer
@@ -36,6 +39,16 @@
 #define WHITE 0x00
 #define BLACK 0x10
 #define TOGGLE_COLOR(x) (0x10 ^ x)
+
+#ifdef __CUDA_ARCH__
+#define DEV __device__
+#define HOST __host__
+#else
+#define DEV
+#define HOST
+#endif
+
+
 
 struct Move
 {
@@ -130,6 +143,61 @@ struct ChessBoard
 	void getKingMoves(int figure, int pos, std::list<Move> & moves,
 		std::list<Move> & captures);
 
+    /*
+	* Generates all moves for one side.
+	*/
+	DEV void getMoves_cuda(int color, 
+        Move *moves,
+		Move *captures, int *i);
+
+	/*
+	* All possible moves for a pawn piece.
+	*/
+	DEV void getPawnMoves_cuda(int figure, int pos, 
+        Move *moves,
+		Move *captures,
+        int *i) const;
+	
+	/*
+	* All possible moves for a rook piece.
+	*/
+	DEV void getRookMoves_cuda(int figure, int pos, 
+        Move *moves,
+		Move *captures,
+        int *i) const;
+	
+	/*
+	* All possible moves for a knight piece.
+	*/
+	DEV void getKnightMoves_cuda(int figure, int pos, 
+        Move *moves,
+		Move *captures,
+        int *i) const;
+	
+	/*
+	* All possible moves for a bishop piece.
+	*/
+	DEV void getBishopMoves_cuda(int figure, int pos, 
+        Move *moves,
+		Move *captures,
+        int *i) const;
+	
+	/*
+	* All possible moves for a queen piece.
+	*/
+	DEV void getQueenMoves_cuda(int figure, int pos,
+        Move *moves,
+		Move *captures,
+        int *i) const;
+
+	/*
+	* All possible moves for a king piece.
+	*/
+	DEV void getKingMoves_cuda(int figure, int pos,
+        Move *moves,
+		Move *captures,
+        int *i);
+    
 	/*
 	* Returns true, if the square given by pos is vulnerable to the opponent.
 	* This is used to determine if castling is legal or if kings are in check.
@@ -150,18 +218,34 @@ struct ChessBoard
 	* conclusion.
 	*/
 	ChessPlayer::Status getPlayerStatus(int color);
+    
+    /*
+	* True if move is a valid move for player of given color. Please note, that
+	* a move that puts the player's own king in check, is also treated as
+	* invalid.
+	*/
+	DEV bool isValidMove_cuda(int color, Move & move);
+
+	/*
+	* Returns the status of player of given color. This method is not declared
+	* const, because it needs to simulate moves on the board to draw a
+	* conclusion.
+	*/
+	DEV ChessPlayer::Status getPlayerStatus_cuda(int color, Move *act,
+            bool writeflag, int *i);
+
 
 	/*
 	* Move and undo moves
 	*/
-	void move(const Move & move);
-	void undoMove(const Move & move);
+	HOST DEV void move(const Move & move);
+	HOST DEV void undoMove(const Move & move);
 
-	void movePawn(const Move & move);
-	void undoMovePawn(const Move & move);
+	HOST DEV void movePawn(const Move & move);
+	HOST DEV void undoMovePawn(const Move & move);
 
-	void moveKing(const Move & move);
-	void undoMoveKing(const Move & move);
+	HOST DEV void moveKing(const Move & move);
+	HOST DEV void undoMoveKing(const Move & move);
 
 	// THE BOARD ITSELF
 	char square[8*8];

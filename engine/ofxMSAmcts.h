@@ -21,12 +21,13 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 namespace msa {
     namespace mcts {
 
+        Action minimaxCuda(State state);
 		// State must comply with State Interface (see IState.h)
 		// Action can be anything (which your State class knows how to handle)
         template <class State, typename Action>
         class UCT {
             typedef TreeNodeT<State, Action> TreeNode;
-            Action minimaxCuda(State state);
+            //Action minimaxCuda(State state);
         private:
             LoopTimer timer;
             int iterations;
