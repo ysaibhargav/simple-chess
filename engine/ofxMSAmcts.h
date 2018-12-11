@@ -42,11 +42,12 @@ namespace msa {
         unsigned int minimax_depth_trigger;
         unsigned int minimax_selection_criterion;
         int num_threads;
+        unsigned int seed;
 
         //--------------------------------------------------------------
         UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
             unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false,
-            int num_threads=1) :
+            int num_threads=1, unsigned int seed=unsigned(time(0))) :
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
@@ -57,9 +58,10 @@ namespace msa {
           use_minimax_selection(use_minimax_selection),
           minimax_depth_trigger(minimax_depth_trigger),
           minimax_selection_criterion(minimax_selection_criterion),
-          num_threads(num_threads)
+          num_threads(num_threads),
+          seed(seed)
         {
-          std::srand(unsigned(time(0)));
+          std::srand(seed);
         }
 
 
@@ -151,7 +153,7 @@ namespace msa {
 
 
         //--------------------------------------------------------------
-        bool run(State& current_state, Action &final_action, unsigned int seed = 1) {//, std::vector<State>* explored_states = nullptr) {
+        bool run(State& current_state, Action &final_action) {//, std::vector<State>* explored_states = nullptr) {
           if (current_state.is_terminal()) return false;
 
           if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
@@ -187,8 +189,7 @@ namespace msa {
             in(depth) \
             in(white_to_move) \
             in(found_proven_move) \
-            inout(proven_move) \
-            in(seed)
+            inout(proven_move)
             //nocopy(explored_states)
           #endif
           {

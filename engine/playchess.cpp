@@ -92,6 +92,7 @@ int main(int argc, const char *argv[]) {
   int depth = get_option_int("-d", -1);
   int run_on_phi = get_option_int("-x", 0);
   int num_runs = get_option_int("-r", 1);
+  int seed = get_option_int("-s", (int)time(0));
 
   int error = 0;
 
@@ -142,7 +143,8 @@ int main(int argc, const char *argv[]) {
   bool debug = false;
   msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
       use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger,
-      minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads);
+      minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads,
+      seed=(unsigned)seed);
   HumanPlayer white(WHITE);
 
   double times[num_runs]; 
