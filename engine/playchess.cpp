@@ -63,6 +63,7 @@ int main(int argc, const char *argv[]) {
   int num_threads = get_option_int("-n", 1);
   int depth = get_option_int("-d", -1);
   int run_on_phi = get_option_int("-x", 0);
+  int num_runs = get_option_int("-r", 1);
 
   int error = 0;
 
@@ -96,10 +97,12 @@ int main(int argc, const char *argv[]) {
 
   int white_to_move = run_on_phi ? 0 : 1;
   msa::mcts::State state(depth, white_to_move, board);
+  msa::mcts::State _state = state;
   msa::mcts::Action action;
 
   list<Move> regulars, nulls;
   int turn = white_to_move ? WHITE : BLACK;
+  int _turn = turn;
   bool found;
 
 
@@ -114,33 +117,36 @@ int main(int argc, const char *argv[]) {
       minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads);
   HumanPlayer white(WHITE);
 
+  for(int run=0; run<num_runs; run++) {
+    state = _state;
+    turn = _turn;
+    for(;;) {
+      // show board
+      state.board.print();
+      if(state.is_terminal())
+        break;
 
-  for(;;) {
-    // show board
-    state.board.print();
-    if(state.is_terminal())
-      break;
+      // query player's choice
+      if(turn) {
+        found = black.run(state, action);
+      }
+      else {
+        found = white.getMove(state.board, action.regular);
+        if (found)
+          state.get_maintenance_moves(action);
+      }
 
-    // query player's choice
-    if(turn) {
-      found = black.run(state, action);
+      if(!found)
+        break;
+
+      state.apply_action(action);
+      action.regular.print();
+
+      // opponents turn
+      turn = TOGGLE_COLOR(turn);
+      if(run_on_phi)
+        break;
     }
-    else {
-      found = white.getMove(state.board, action.regular);
-      if (found)
-        state.get_maintenance_moves(action);
-    }
-
-    if(!found)
-      break;
-
-    state.apply_action(action);
-    action.regular.print();
-
-    // opponents turn
-    turn = TOGGLE_COLOR(turn);
-    if(run_on_phi)
-      break;
   }
 
   ChessPlayer::Status status = state.board.getPlayerStatus(WHITE);
