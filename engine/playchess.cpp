@@ -1,6 +1,7 @@
 //#include <mcheck.h>
 #include <cstdlib>
 #include <cstdio>
+#include <chrono>
 #include <cstring>
 #include <list>
 #include "chessboard.h"
@@ -14,6 +15,33 @@ using namespace std;
 
 static int _argc;
 static const char **_argv;
+
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::duration<double> dsec;
+
+double median(int n, double x[]) {
+    double temp;
+    int i, j;
+    // the following two loops sort the array x in ascending order
+    for(i=0; i<n-1; i++) {
+        for(j=i+1; j<n; j++) {
+            if(x[j] < x[i]) {
+                // swap elements
+                temp = x[i];
+                x[i] = x[j];
+                x[j] = temp;
+            }
+        }
+    }
+
+    if(n%2==0) {
+        // if there is an even number of elements, return mean of the two elements in the middle
+        return((x[n/2] + x[n/2 - 1]) / 2.0);
+    } else {
+        // else return the element in the middle
+        return x[n/2];
+    }
+}
 
 /* Starter code function, don't touch */
 const char *get_option_string(const char *option_name,
@@ -117,7 +145,9 @@ int main(int argc, const char *argv[]) {
       minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads);
   HumanPlayer white(WHITE);
 
+  double times[num_runs]; 
   for(int run=0; run<num_runs; run++) {
+    auto t_start = Clock::now();
     state = _state;
     turn = _turn;
     for(;;) {
@@ -147,7 +177,9 @@ int main(int argc, const char *argv[]) {
       if(run_on_phi)
         break;
     }
+    times[run] = std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
   }
+  printf("Median run time is %.2f\n", median(num_runs, times));
 
   ChessPlayer::Status status = state.board.getPlayerStatus(WHITE);
 
