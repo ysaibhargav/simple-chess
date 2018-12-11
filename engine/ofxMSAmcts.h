@@ -17,6 +17,10 @@
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
+#define BUFSIZE 1024
+
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::duration<double> dsec;
 
 namespace msa {
   namespace mcts {
@@ -153,13 +157,17 @@ namespace msa {
 
 
         //--------------------------------------------------------------
-        bool run(State& current_state, Action &final_action) {//, std::vector<State>* explored_states = nullptr) {
+        bool run(State& current_state, Action &final_action, int run) {//, std::vector<State>* explored_states = nullptr) {
           if (current_state.is_terminal()) return false;
 
           if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
             final_action = minimax2(State(current_state));
             return true;
           }
+
+          char output_filename[BUFSIZE];
+          sprintf(output_filename, "out_%d.txt", run);
+          FILE *output_file = fopen(output_filename, "w");
 
           // initialize timer
           //timer.init();
@@ -177,6 +185,8 @@ namespace msa {
           int white_to_move = current_state.white_to_move;
 
           printf("Beginning offload to Phi\n");
+          auto t_start = Clock::now();
+          double phi_time = 0;
           #ifdef RUN_MIC /* Use RUN_MIC to distinguish between the target of compilation */
 
           /* This pragma means we want the code in the following block be executed in 
@@ -189,10 +199,14 @@ namespace msa {
             in(depth) \
             in(white_to_move) \
             in(found_proven_move) \
+            nocopy(t_start) \
+            in(output_file : length(BUFSIZE)) \
+            inout(phi_time) \
             inout(proven_move)
             //nocopy(explored_states)
           #endif
           {
+            auto inner_t_start = Clock::now();
             printf("Finished offload to Phi\n");
             ChessBoard _board;
             for(int pos=0; pos<64; pos++)
@@ -361,6 +375,7 @@ namespace msa {
               // exit loop if current total run duration (since init) exceeds max_millis
               //if(max_millis > 0 && timer.check_duration(max_millis)) break;
             }
+            phi_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
           } // end mic
           printf("Finished parallel execution\n");
 
@@ -369,6 +384,14 @@ namespace msa {
           //  final_action = best_node->get_action();
           //}
           final_action = Action(proven_move);        
+          double time = (double)std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
+          printf("Overall time %.2f\n", time);
+          printf("Phi time %.2f\n", phi_time);
+          printf("Offloading time %.2f\n", time-phi_time);
+          fprintf(output_file, "Overall time %.2f\n", time);
+          fprintf(output_file, "Phi time %.2f\n", phi_time);
+          fprintf(output_file, "Offloading time %.2f\n", time-phi_time);
+          fclose(output_file);
 
           return true; 
         }

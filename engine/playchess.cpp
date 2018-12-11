@@ -160,7 +160,7 @@ int main(int argc, const char *argv[]) {
 
       // query player's choice
       if(turn) {
-        found = black.run(state, action);
+        found = black.run(state, action, run);
       }
       else {
         found = white.getMove(state.board, action.regular);
