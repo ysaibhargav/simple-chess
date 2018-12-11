@@ -56,6 +56,9 @@ namespace msa {
             // retrieve list of actions from the state
             state.get_actions(_actions);
 
+            // randomize the order
+            std::random_shuffle(_actions.begin(), _actions.end());
+
             if(!is_root) actions = _actions;
             else {
                 //printf("(expand) Root node state:\n");
@@ -71,9 +74,6 @@ namespace msa {
                 actions = std::vector< Action >(_actions.begin() + start_idx, _actions.begin() + end_idx);
                 //printf("(expand) Actions size %d, span %d, num_actions from state %d\n", (int)actions.size(), span, num_actions);
             }
-
-            // randomize the order
-            std::random_shuffle(actions.begin(), actions.end());
           }
 
           // add the next action in queue as a child

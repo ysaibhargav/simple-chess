@@ -263,7 +263,8 @@ namespace msa {
                      ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
                   assert(minimax_selection_criterion == NONZERO_WINS);
                   printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
-                  float black_reward = minimax(node->get_state());
+                  //float black_reward = minimax(node->get_state());
+                  float black_reward = omp_minimax(node->get_state(), found_proven_move);
                   printf("Minimax from thread %d finished with reward %f\n", omp_get_thread_num(), black_reward);
                   if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
                   else node->proved = PROVEN_LOSS;

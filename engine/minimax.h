@@ -48,6 +48,40 @@ namespace msa {
       }
     }
 
+    float omp_minimax(State state, bool &found_proven_move){
+      if(state.is_terminal())
+        return state.evaluate_minimax(); 
+
+      if(found_proven_move) return LOSS; 
+      if(!state.white_to_move){
+        float value = -INF;
+        std::vector<Action> actions;
+        state.get_actions(actions); 
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+          if(found_proven_move) return LOSS; 
+          State next_state = state;
+          next_state.apply_action(*it);
+          value = max(value, minimax(next_state));
+          if(value == VICTORY) return value;
+        } 
+        return LOSS;
+      }
+
+      //if(state.white_to_move){
+      else{
+        float value = INF;
+        std::vector<Action> actions;
+        state.get_actions(actions); 
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+          if(found_proven_move) return LOSS; 
+          State next_state = state;
+          next_state.apply_action(*it);
+          value = min(value, minimax(next_state));
+          if(value == LOSS) return value;
+        } 
+        return VICTORY;
+      }
+    }
 
     Action minimax2(State state){
       if(state.is_terminal())
