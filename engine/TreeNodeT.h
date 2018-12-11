@@ -64,7 +64,8 @@ namespace msa {
                 int num_threads = omp_get_num_threads();
                 //printf("(expand) num_threads %d, tid %d\n", num_threads, tid);
                 int num_actions = _actions.size();
-                int span = (num_actions + num_threads - 1) / num_threads;
+                int span = (num_actions / num_threads);//(num_actions + num_threads - 1) / num_threads;
+                if(tid < (num_actions % num_threads)) span++;
                 int start_idx = tid * span;
                 int end_idx = std::min((tid + 1)*span, num_actions);
                 actions = std::vector< Action >(_actions.begin() + start_idx, _actions.begin() + end_idx);

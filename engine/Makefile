@@ -12,11 +12,18 @@ $(APP_NAME): CXXFLAGS = -I. -O3 -Wall -openmp -offload-attribute-target=mic -DRU
 cpu: CXX = g++ -m64 -std=c++11
 cpu: CXXFLAGS = -I. -O3 -Wall -fopenmp -Wno-unknown-pragmas
 
+# Compile for CPU gdb
+gdb: CXX = g++ -m64 -std=c++11
+gdb: CXXFLAGS = -g -I. -Wall -fopenmp -Wno-unknown-pragmas
+
 # Compilation Rules
 $(APP_NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
 cpu: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(APP_NAME) $(OBJS)
+
+gdb: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(APP_NAME) $(OBJS)
 
 %.o: %.cpp %.h
