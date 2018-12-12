@@ -198,7 +198,6 @@ namespace msa {
             nocopy(t_start) \
             inout(phi_time) \
             inout(proven_move)
-            //nocopy(explored_states)
           #endif
           {
             auto inner_t_start = Clock::now();
@@ -220,12 +219,14 @@ namespace msa {
               printf("Num visits is %d\n", root_node.get_num_visits());
             }
 
+            TreeNode* per_thread_best_nodes[num_threads];
+
             printf("Starting parallel execution\n");
             // iterate
             omp_set_num_threads(num_threads);
             #pragma omp parallel \
               firstprivate(root_node) \
-              shared(proven_move, found_proven_move)
+              shared(proven_move, found_proven_move, per_thread_best_nodes)
             {
               char output_filename[BUFSIZE];
               sprintf(output_filename, "out_%d_%d_%d.txt", num_threads, run, omp_get_thread_num());
@@ -253,19 +254,7 @@ namespace msa {
                 auto selection_t_start = Clock::now();
                 // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
                 if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
-                  //best_node = root_node.proven_child;
                   TreeNode *best_node = root_node.proven_child; 
-                  /*Move write_proven_move(best_node->get_action().regular);
-                  #pragma omp atomic write
-                  found_proven_move = true;
-                  #pragma omp atomic write
-                  proven_move.figure = write_proven_move.figure; 
-                  #pragma omp atomic write
-                  proven_move.from = write_proven_move.from; 
-                  #pragma omp atomic write
-                  proven_move.to = write_proven_move.to; 
-                  #pragma omp atomic write
-                  proven_move.capture = write_proven_move.capture;*/ 
                   atomic_t_start = Clock::now();
                   #pragma omp critical
                   {
@@ -288,6 +277,7 @@ namespace msa {
                   node = get_best_uct_child(node, uct_k);
 
                   if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
+                      (node->state.depth <= minimax_depth_trigger) &&
                       (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
                        ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
                     assert(minimax_selection_criterion == NONZERO_WINS);
@@ -390,7 +380,7 @@ namespace msa {
                 backprop_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - backprop_t_start).count();
 
                 // find most visited child
-                //best_node = get_most_visited_child(&root_node);
+                per_thread_best_nodes[omp_get_thread_num()] = get_most_visited_child(&root_node);
 
                 // indicate end of loop for timer
                 //timer.loop_end();
@@ -398,6 +388,22 @@ namespace msa {
                 // exit loop if current total run duration (since init) exceeds max_millis
                 //if(max_millis > 0 && timer.check_duration(max_millis)) break;
               } // end for
+              
+              if(!found_proven_move){
+                printf("Proven move not found!\n");
+                int most_visits = -1;
+                TreeNode* best_node = NULL;
+                for(int node_idx=0; node_idx<num_threads; node_idx++){
+                  TreeNode* current_node = per_thread_best_nodes[node_idx]; 
+                  int num_visits = current_node->get_num_visits();
+                  if(num_visits > most_visits){
+                    best_node = current_node;
+                    most_visits = num_visits;
+                  }
+                }
+                proven_move = best_node->get_action().regular;
+              }            
+
               phi_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
               double overall_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
               fprintf(output_file, "Overall time %.2f\n", overall_time);

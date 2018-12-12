@@ -137,7 +137,7 @@ int main(int argc, const char *argv[]) {
 
   // Initialize players
   bool use_minimax_rollouts = false;
-  unsigned minimax_depth_trigger = depth;
+  unsigned minimax_depth_trigger = 2;//depth;
   bool use_minimax_selection = true;
   unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
   bool debug = false;
