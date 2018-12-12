@@ -356,8 +356,9 @@ namespace msa {
                 else if(!minimax_search_triggered){
                   // get rewards vector for all agents
                   rewards = state.evaluate();
-                  if(rewards[BLACK_ID] == VICTORY)
+                  if(rewards[BLACK_ID] == VICTORY){
                     printf("Found possible winning sequence in iteration %d\n", _iterations);
+                  }
 
                   // add to history
                   //if(explored_states) explored_states->push_back(state);
@@ -366,6 +367,7 @@ namespace msa {
 
                 auto backprop_t_start = Clock::now();
                 // 4. BACK PROPAGATION
+                Action first_action;
                 if(debug) printf("BACKPROP\n");
                 while(node) {
                   node->update(rewards);
@@ -375,7 +377,12 @@ namespace msa {
                     printf("Num visits is %d\n", node->get_num_visits());
                     node->state.board.print();
                   }
+                  if(node->get_parent()) first_action = node->get_action();
                   node = node->get_parent();
+                }
+                if(debug && !minimax_search_triggered && rewards[BLACK_ID] == VICTORY){ 
+                  printf("First move of possible winning sequence:\n");
+                  first_action.regular.print();
                 }
                 backprop_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - backprop_t_start).count();
 
