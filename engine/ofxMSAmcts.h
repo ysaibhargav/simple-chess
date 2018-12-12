@@ -165,10 +165,6 @@ namespace msa {
             return true;
           }
 
-          char output_filename[BUFSIZE];
-          sprintf(output_filename, "out_%d.txt", run);
-          FILE *output_file = fopen(output_filename, "w");
-
           // initialize timer
           //timer.init();
 
@@ -200,7 +196,6 @@ namespace msa {
             in(white_to_move) \
             in(found_proven_move) \
             nocopy(t_start) \
-            in(output_file : length(BUFSIZE)) \
             inout(phi_time) \
             inout(proven_move)
             //nocopy(explored_states)
@@ -228,154 +223,194 @@ namespace msa {
             printf("Starting parallel execution\n");
             // iterate
             omp_set_num_threads(num_threads);
-            #pragma omp parallel for \
-              schedule(static) \
+            #pragma omp parallel \
               firstprivate(root_node) \
               shared(proven_move, found_proven_move)
-            for(unsigned int _iterations=0; _iterations<max_iterations; _iterations++) {
-              // indicate start of loop
-              //timer.loop_start();
-              #pragma omp atomic read
-              read_found_proven_move = found_proven_move;
-              if(read_found_proven_move) continue;
+            {
+              char output_filename[BUFSIZE];
+              sprintf(output_filename, "out_%d_%d_%d.txt", num_threads, run, omp_get_thread_num());
+              FILE *output_file = fopen(output_filename, "w");
 
-              // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
-              if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
-                //best_node = root_node.proven_child;
-                TreeNode *best_node = root_node.proven_child; 
-                /*Move write_proven_move(best_node->get_action().regular);
-                #pragma omp atomic write
-                found_proven_move = true;
-                #pragma omp atomic write
-                proven_move.figure = write_proven_move.figure; 
-                #pragma omp atomic write
-                proven_move.from = write_proven_move.from; 
-                #pragma omp atomic write
-                proven_move.to = write_proven_move.to; 
-                #pragma omp atomic write
-                proven_move.capture = write_proven_move.capture;*/ 
-                #pragma omp critical
-                {
-                  proven_move = Move(best_node->get_action().regular);
+              double atomic_time = 0;
+              double selection_time = 0; 
+              double minimax_time = 0; 
+              double expansion_time = 0;
+              double simulation_time = 0;
+              double backprop_time = 0;
+
+              #pragma omp for \
+                schedule(static)
+              for(unsigned int _iterations=0; _iterations<max_iterations; _iterations++) {
+                // indicate start of loop
+                //timer.loop_start();
+                auto atomic_t_start = Clock::now();
+                #pragma omp atomic read
+                read_found_proven_move = found_proven_move;
+                atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                
+                if(read_found_proven_move) continue;
+
+                auto selection_t_start = Clock::now();
+                // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
+                if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
+                  //best_node = root_node.proven_child;
+                  TreeNode *best_node = root_node.proven_child; 
+                  /*Move write_proven_move(best_node->get_action().regular);
+                  #pragma omp atomic write
                   found_proven_move = true;
-                }
-                //if(debug)
-                printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
-                continue;
-              }
-
-              bool found_proven_node = false;
-              TreeNode* node = &root_node;
-              while(!node->is_terminal() && node->is_fully_expanded()) {
-                if(use_minimax_selection && node->proved != NOT_PROVEN){
-                  found_proven_node = true;
-                  break;
-                }
-                node = get_best_uct_child(node, uct_k);
-
-                if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
-                    (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
-                     ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
-                  assert(minimax_selection_criterion == NONZERO_WINS);
-                  printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
-                  //float black_reward = minimax(node->get_state());
-                  float black_reward = omp_minimax(node->get_state(), found_proven_move);
-                  printf("Minimax from thread %d finished with reward %f\n", omp_get_thread_num(), black_reward);
-                  if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
-                  else node->proved = PROVEN_LOSS;
-                  found_proven_node = true;
-                  if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
-                    node->parent->proved = PROVEN_VICTORY;
-                    node->parent->proven_child = node;
+                  #pragma omp atomic write
+                  proven_move.figure = write_proven_move.figure; 
+                  #pragma omp atomic write
+                  proven_move.from = write_proven_move.from; 
+                  #pragma omp atomic write
+                  proven_move.to = write_proven_move.to; 
+                  #pragma omp atomic write
+                  proven_move.capture = write_proven_move.capture;*/ 
+                  atomic_t_start = Clock::now();
+                  #pragma omp critical
+                  {
+                    proven_move = Move(best_node->get_action().regular);
+                    found_proven_move = true;
                   }
-                  if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
-                    node->parent->proved = PROVEN_LOSS;
-                    node->parent->proven_child = node;
-                  }
-                  break;
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                  //if(debug)
+                  printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
+                  continue;
                 }
-                if(debug) {
-                  printf("Best UCT child's color is %d, value is %f, num visits is %d\n",
-                      node->agent_id, node->get_value(), node->get_num_visits());
-                  node->action.regular.print();
-                  node->state.board.print();
-                }
-              }
 
-              // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
-              if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
-                node = node->expand();
-                if(debug) {
-                  printf("Expanded move is ");
-                  node->action.regular.print();
-                  node->state.board.print();
-                }
-              }
-
-              State state(node->get_state());
-
-              // 3. SIMULATE (if not terminal)
-              std::vector<float> rewards;
-              bool minimax_search_triggered = false;
-              if(!found_proven_node && !node->is_terminal()) {
-                Action action;
-                for(unsigned int t = 0; t < simulation_depth; t++) {
-                  if(state.is_terminal()) break;
-
-                  if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
-                    float black_reward = minimax(state);
-                    rewards.push_back(black_reward);
-                    rewards.push_back(1.-black_reward);
-                    minimax_search_triggered = true;
+                bool found_proven_node = false;
+                TreeNode* node = &root_node;
+                while(!node->is_terminal() && node->is_fully_expanded()) {
+                  if(use_minimax_selection && node->proved != NOT_PROVEN){
+                    found_proven_node = true;
                     break;
                   }
-                  state.get_random_action(action);
-                  state.apply_action(action);
+                  node = get_best_uct_child(node, uct_k);
+
+                  if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
+                      (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
+                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
+                    assert(minimax_selection_criterion == NONZERO_WINS);
+                    printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
+                    //float black_reward = minimax(node->get_state());
+                    auto minimax_t_start = Clock::now();
+                    float black_reward = omp_minimax(node->get_state(), found_proven_move);
+                    minimax_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - minimax_t_start).count();
+                    printf("Minimax from thread %d finished with reward %f\n", omp_get_thread_num(), black_reward);
+                    if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
+                    else node->proved = PROVEN_LOSS;
+                    found_proven_node = true;
+                    if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
+                      node->parent->proved = PROVEN_VICTORY;
+                      node->parent->proven_child = node;
+                    }
+                    if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
+                      node->parent->proved = PROVEN_LOSS;
+                      node->parent->proven_child = node;
+                    }
+                    break;
+                  }
                   if(debug) {
-                    printf("Depth %d, move is ", state.depth);
-                    action.regular.print();
-                    state.board.print();
+                    printf("Best UCT child's color is %d, value is %f, num visits is %d\n",
+                        node->agent_id, node->get_value(), node->get_num_visits());
+                    node->action.regular.print();
+                    node->state.board.print();
                   }
                 }
-              }
+                selection_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - selection_t_start).count();
 
-              if(found_proven_node){
-                if(node->proved == PROVEN_VICTORY) rewards = {1., 0.};
-                else rewards = {0., 1.};
-              }
-              else if(!minimax_search_triggered){
-                // get rewards vector for all agents
-                rewards = state.evaluate();
-                if(rewards[BLACK_ID] == VICTORY)
-                  printf("Found possible winning sequence in iteration %d\n", _iterations);
-
-                // add to history
-                //if(explored_states) explored_states->push_back(state);
-              }
-
-              // 4. BACK PROPAGATION
-              if(debug) printf("BACKPROP\n");
-              while(node) {
-                node->update(rewards);
-                if(debug) {
-                  printf("Node color is %d\n", node->agent_id);
-                  printf("Node value is %f\n", node->get_value());
-                  printf("Num visits is %d\n", node->get_num_visits());
-                  node->state.board.print();
+                auto expansion_t_start = Clock::now();
+                // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
+                if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
+                  node = node->expand();
+                  if(debug) {
+                    printf("Expanded move is ");
+                    node->action.regular.print();
+                    node->state.board.print();
+                  }
                 }
-                node = node->get_parent();
-              }
 
-              // find most visited child
-              //best_node = get_most_visited_child(&root_node);
+                State state(node->get_state());
+                expansion_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - expansion_t_start).count();
 
-              // indicate end of loop for timer
-              //timer.loop_end();
+                auto simulation_t_start = Clock::now();
+                // 3. SIMULATE (if not terminal)
+                std::vector<float> rewards;
+                bool minimax_search_triggered = false;
+                if(!found_proven_node && !node->is_terminal()) {
+                  Action action;
+                  for(unsigned int t = 0; t < simulation_depth; t++) {
+                    if(state.is_terminal()) break;
 
-              // exit loop if current total run duration (since init) exceeds max_millis
-              //if(max_millis > 0 && timer.check_duration(max_millis)) break;
-            }
-            phi_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
+                    if(use_minimax_rollouts && state.depth <= minimax_depth_trigger){
+                      float black_reward = minimax(state);
+                      rewards.push_back(black_reward);
+                      rewards.push_back(1.-black_reward);
+                      minimax_search_triggered = true;
+                      break;
+                    }
+                    state.get_random_action(action);
+                    state.apply_action(action);
+                    if(debug) {
+                      printf("Depth %d, move is ", state.depth);
+                      action.regular.print();
+                      state.board.print();
+                    }
+                  }
+                }
+
+                if(found_proven_node){
+                  if(node->proved == PROVEN_VICTORY) rewards = {1., 0.};
+                  else rewards = {0., 1.};
+                }
+                else if(!minimax_search_triggered){
+                  // get rewards vector for all agents
+                  rewards = state.evaluate();
+                  if(rewards[BLACK_ID] == VICTORY)
+                    printf("Found possible winning sequence in iteration %d\n", _iterations);
+
+                  // add to history
+                  //if(explored_states) explored_states->push_back(state);
+                }
+                simulation_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - simulation_t_start).count();
+
+                auto backprop_t_start = Clock::now();
+                // 4. BACK PROPAGATION
+                if(debug) printf("BACKPROP\n");
+                while(node) {
+                  node->update(rewards);
+                  if(debug) {
+                    printf("Node color is %d\n", node->agent_id);
+                    printf("Node value is %f\n", node->get_value());
+                    printf("Num visits is %d\n", node->get_num_visits());
+                    node->state.board.print();
+                  }
+                  node = node->get_parent();
+                }
+                backprop_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - backprop_t_start).count();
+
+                // find most visited child
+                //best_node = get_most_visited_child(&root_node);
+
+                // indicate end of loop for timer
+                //timer.loop_end();
+
+                // exit loop if current total run duration (since init) exceeds max_millis
+                //if(max_millis > 0 && timer.check_duration(max_millis)) break;
+              } // end for
+              phi_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
+              double overall_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
+              fprintf(output_file, "Overall time %.2f\n", overall_time);
+              fprintf(output_file, "Phi time %.2f\n", phi_time);
+              fprintf(output_file, "Offloading time %.2f\n", overall_time-phi_time);
+              fprintf(output_file, "Selection time %.2f\n", selection_time);
+              fprintf(output_file, "Expansion time %.2f\n", expansion_time);
+              fprintf(output_file, "Simulation time %.2f\n", simulation_time);
+              fprintf(output_file, "Backprop time %.2f\n", backprop_time);
+              fprintf(output_file, "Minimax time %.2f\n", minimax_time);
+              fprintf(output_file, "Atomic time %.2f\n", atomic_time);
+              fclose(output_file);
+            } // end parallel region
           } // end mic
           printf("Finished parallel execution\n");
 
@@ -384,14 +419,6 @@ namespace msa {
           //  final_action = best_node->get_action();
           //}
           final_action = Action(proven_move);        
-          double time = (double)std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
-          printf("Overall time %.2f\n", time);
-          printf("Phi time %.2f\n", phi_time);
-          printf("Offloading time %.2f\n", time-phi_time);
-          fprintf(output_file, "Overall time %.2f\n", time);
-          fprintf(output_file, "Phi time %.2f\n", phi_time);
-          fprintf(output_file, "Offloading time %.2f\n", time-phi_time);
-          fclose(output_file);
 
           return true; 
         }
