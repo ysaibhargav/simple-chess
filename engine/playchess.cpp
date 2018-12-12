@@ -93,6 +93,7 @@ int main(int argc, const char *argv[]) {
   int run_on_phi = get_option_int("-x", 0);
   int num_runs = get_option_int("-r", 1);
   int seed = get_option_int("-s", (int)time(0));
+  unsigned minimax_depth_trigger = get_option_int("-h", INF);
 
   int error = 0;
 
@@ -137,7 +138,7 @@ int main(int argc, const char *argv[]) {
 
   // Initialize players
   bool use_minimax_rollouts = false;
-  unsigned minimax_depth_trigger = 2;//depth;
+  //unsigned minimax_depth_trigger = depth;
   bool use_minimax_selection = true;
   unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
   bool debug = false;

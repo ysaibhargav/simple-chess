@@ -55,7 +55,7 @@ namespace msa {
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 1000000 ),
+          max_iterations( 100000 ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
