@@ -141,11 +141,12 @@ int main(int argc, const char *argv[]) {
   //unsigned minimax_depth_trigger = depth;
   bool use_minimax_selection = true;
   unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
+  unsigned parallel_scheme = TREE_PARALLEL;
   bool debug = false;
   msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
       use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger,
       minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads,
-      seed=(unsigned)seed);
+      seed=(unsigned)seed, parallel_scheme=parallel_scheme);
   HumanPlayer white(WHITE);
 
   double times[num_runs]; 

@@ -17,6 +17,10 @@
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
+// Parallelism schemes
+#define TREE_PARALLEL 0
+#define ROOT_PARALLEL 1
+
 #define BUFSIZE 1024
 
 typedef std::chrono::high_resolution_clock Clock;
@@ -47,11 +51,12 @@ namespace msa {
         unsigned int minimax_selection_criterion;
         int num_threads;
         unsigned int seed;
+        unsigned parallel_scheme;
 
         //--------------------------------------------------------------
         UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
             unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false,
-            int num_threads=1, unsigned int seed=unsigned(time(0))) :
+            int num_threads=1, unsigned int seed=unsigned(time(0)), unsigned parallel_scheme=ROOT_PARALLEL) :
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
@@ -63,7 +68,8 @@ namespace msa {
           minimax_depth_trigger(minimax_depth_trigger),
           minimax_selection_criterion(minimax_selection_criterion),
           num_threads(num_threads),
-          seed(seed)
+          seed(seed),
+          parallel_scheme(parallel_scheme)
         {
           std::srand(seed);
         }
@@ -211,7 +217,7 @@ namespace msa {
             bool read_found_proven_move;
             State _current_state(depth, white_to_move, _board); 
             // initialize root TreeNode with current state
-            TreeNode root_node(_current_state, NULL, true);
+            TreeNode root_node(_current_state, NULL, (parallel_scheme == ROOT_PARALLEL));
             if(debug) {
               printf("ROOT\n");
               printf("Node color is %d\n", root_node.agent_id);
@@ -244,10 +250,13 @@ namespace msa {
               for(unsigned int _iterations=0; _iterations<max_iterations; _iterations++) {
                 // indicate start of loop
                 //timer.loop_start();
-                auto atomic_t_start = Clock::now();
-                #pragma omp atomic read
-                read_found_proven_move = found_proven_move;
-                atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                
+                if(minimax_depth_trigger >= (root_node.state.depth - 1)) {
+                  auto atomic_t_start = Clock::now();
+                  #pragma omp atomic read
+                  read_found_proven_move = found_proven_move;
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                }
                 
                 if(read_found_proven_move) continue;
 
@@ -255,7 +264,7 @@ namespace msa {
                 // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
                 if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                   TreeNode *best_node = root_node.proven_child; 
-                  atomic_t_start = Clock::now();
+                  auto atomic_t_start = Clock::now();
                   #pragma omp critical
                   {
                     proven_move = Move(best_node->get_action().regular);
@@ -274,6 +283,8 @@ namespace msa {
                     found_proven_node = true;
                     break;
                   }
+                  //TODO(sai): get best uct child and proving in critical block 
+                  //TODO(sai): virtual loss
                   node = get_best_uct_child(node, uct_k);
 
                   if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
@@ -311,6 +322,7 @@ namespace msa {
 
                 auto expansion_t_start = Clock::now();
                 // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
+                // TODO(sai): critical
                 if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                   node = node->expand();
                   if(debug) {
@@ -370,6 +382,8 @@ namespace msa {
                 Action first_action;
                 if(debug) printf("BACKPROP\n");
                 while(node) {
+                  // TODO(sai): critical
+                  // TODO(sai): critical
                   node->update(rewards);
                   if(debug) {
                     printf("Node color is %d\n", node->agent_id);
