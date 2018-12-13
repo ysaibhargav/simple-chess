@@ -79,6 +79,10 @@ enum Position {
 		A8, B8, C8, D8, E8, F8, G8, H8
 	};
     
+__device__ __inline__ void inc(int *i) {
+    if(*i < MSIZE-1) (*i) = (*i)+1;
+}
+    
 __device__ bool isVulnerable_C(ChessBoard *b, int pos, int figure)
 {
 	int target_pos, target_figure, row, col, i,j, end;
@@ -431,7 +435,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 			
 			// 2. Two steps ahead if unmoved
 			if(!IS_MOVED(figure))
@@ -447,7 +451,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 						// set passant attribute and clear it later
 						new_move.figure = SET_PASSANT(figure);
 						moves[*i] = new_move;
-                        (*i)++;
+                        inc(i);
 						new_move.figure = figure;
 					}
 				}
@@ -468,7 +472,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.to = target_pos;
 					new_move.capture = target_figure;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -482,7 +486,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 						new_move.to = target_pos;
 						new_move.capture = target_figure;
 						captures[*i] = new_move;
-                        (*i)++;
+                        inc(i);
 					}				
 				}
 			}
@@ -502,7 +506,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.to = target_pos;
 					new_move.capture = target_figure;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -516,7 +520,7 @@ __device__ void getPawnMoves_C(ChessBoard *b, int figure, int pos,
 						new_move.to = target_pos;
 						new_move.capture = target_figure;
 						captures[*i] = new_move;
-                        (*i)++;
+                        inc(i);
 					}				
 				}
 			}
@@ -545,7 +549,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 			
 			break;
@@ -555,7 +559,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 	}
 
@@ -569,7 +573,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 			
 			break;
@@ -579,7 +583,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 	}
 
@@ -593,7 +597,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 			
 			break;
@@ -603,7 +607,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 	}
 
@@ -617,7 +621,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 			
 			break;
@@ -627,7 +631,7 @@ __device__ void getRookMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 	}
 }
@@ -662,7 +666,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -670,7 +674,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -686,7 +690,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -694,7 +698,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}		
 		}
 	}
@@ -714,7 +718,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -722,7 +726,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -738,7 +742,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -746,7 +750,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}		
 		}
 	}
@@ -766,7 +770,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -774,7 +778,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -790,7 +794,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -798,7 +802,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}		
 		}
 	}
@@ -818,7 +822,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -826,7 +830,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -842,7 +846,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -850,7 +854,7 @@ __device__ void getKnightMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}		
 		}
 	}	
@@ -882,7 +886,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*loc] = new_move;
-                (*loc)++;
+                inc(loc);
 			}
 
 			break;
@@ -892,7 +896,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*loc] = new_move;
-            (*loc)++;
+            inc(loc);
 		}
 	}
 	
@@ -907,7 +911,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*loc] = new_move;
-                (*loc)++;
+                inc(loc);
 			}
 			
 			break;
@@ -917,7 +921,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*loc] = new_move;
-            (*loc)++;
+            inc(loc);
 		}
 	}
 
@@ -932,7 +936,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*loc] = new_move;
-                (*loc)++;
+                inc(loc);
 			}
 			
 			break;
@@ -942,7 +946,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*loc] = new_move;
-            (*loc)++;
+            inc(loc);
 		}
 	}
 
@@ -957,7 +961,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				captures[*loc] = new_move;
-                (*loc)++;
+                inc(loc);
 			}
 			
 			break;
@@ -967,7 +971,7 @@ __device__ void getBishopMoves_C(ChessBoard *b, int figure, int pos,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*loc] = new_move;
-            (*loc)++;
+            inc(loc);
 		}
 	}
 }
@@ -1009,7 +1013,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -1017,7 +1021,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -1030,7 +1034,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		else
@@ -1038,7 +1042,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 		
 		// 1.3 down
@@ -1052,7 +1056,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -1060,7 +1064,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 	}
@@ -1079,7 +1083,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -1087,7 +1091,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		
@@ -1100,7 +1104,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		else
@@ -1108,7 +1112,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}
 		
 		// 2.3 down
@@ -1122,7 +1126,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 					new_move.capture = target_figure;
 					new_move.to = target_pos;
 					captures[*i] = new_move;
-                    (*i)++;
+                    inc(i);
 				}
 			}
 			else
@@ -1130,7 +1134,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.to = target_pos;
 				new_move.capture = target_figure;
 				moves[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 	}
@@ -1147,7 +1151,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		else
@@ -1155,7 +1159,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}	
 	}
 	
@@ -1171,7 +1175,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 				new_move.capture = target_figure;
 				new_move.to = target_pos;
 				captures[*i] = new_move;
-                (*i)++;
+                inc(i);
 			}
 		}
 		else
@@ -1179,7 +1183,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 			new_move.to = target_pos;
 			new_move.capture = target_figure;
 			moves[*i] = new_move;
-            (*i)++;
+            inc(i);
 		}	
 	}
 
@@ -1202,7 +1206,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 						new_move.capture = EMPTY;
 						new_move.to = IS_BLACK(figure) ? G8 : G1;
 						moves[*i] = new_move;
-                        (*i)++;
+                        inc(i);
 					}
 				}
 			}
@@ -1227,7 +1231,7 @@ __device__ void getKingMoves_C(ChessBoard *b, int figure, int pos, Move *moves,
 							new_move.capture = EMPTY;
 							new_move.to = IS_BLACK(figure) ? C8 : C1;
 							moves[*i] = new_move;
-                            (*i)++;
+                            inc(i);
 						}
 					}
 				}
@@ -1477,15 +1481,15 @@ __device__ void undoMove_C(ChessBoard *b, const Move & move)
 	}
 }
 
-__device__ bool isValidMove_C(ChessBoard *b, int color, Move & move)
+__device__ bool isValidMove_C(ChessBoard *b, int color, Move move)
 {
 	bool valid = false;
-	Move regulars[MSIZE];
-    int i = 0;
+	Move *regulars = (Move *)malloc(sizeof(Move)*MSIZE);
+    int z = 0;
 
-	getMoves_C(b, color, regulars, regulars, &i);
+	getMoves_C(b, color, regulars, regulars, &z);
 
-	for(int j = 0; j < i && !valid; j++)
+	for(int j = 0; j < z && !valid; j++)
 	{
 		if(move.from == regulars[j].from && move.to == regulars[j].to)
 		{
@@ -1497,13 +1501,13 @@ __device__ bool isValidMove_C(ChessBoard *b, int color, Move & move)
 			undoMove_C(b, regulars[j]);
 		}
 	}
-
+    free(regulars);
 	return valid;
 }
 
 __device__ void apply_move_C(State *s, Move *move) {
-    if(!s->white_to_move) s->depth--;
-    s->white_to_move = !s->white_to_move;
+    if(!(s->white_to_move)) s->depth--;
+    s->white_to_move = !(s->white_to_move);
     ChessBoard b = s->board;
     move_C(&b, *move);
     s->board = b;
@@ -1519,76 +1523,91 @@ min_cuda(float a, float b) {
     return a>b?b:a;
 }
 
-__device__ float minimax_cuda(State state, int index){
+__device__ float minimax_cuda(State *state, int index){
     //malloc/allocate Move array of length 100
-    printf("Beginning minimax, %d\n", index);
+    //printf("Beginning minimax, %d\n", index);
 
     Move *move = (Move *)malloc(sizeof(Move)*MSIZE);
     int i = 0;
    
     if(move == NULL) printf("Out of room\n");
  
-    ChessBoard b = state.board;
+    ChessBoard *b = (ChessBoard *)malloc(sizeof(ChessBoard));
+    *b = state->board;
     bool kvuln, can_move = false;
     bool isterm = false;
 
     
-    int color = state.get_color();
-    getMoves_C(&b, color, move, move, &i);
-    if(isVulnerable_C(&b, color ? b.black_king_pos : b.white_king_pos, color))
+    int color = state->get_color();
+    getMoves_C(b, color, move, move, &i);
+    if(isVulnerable_C(b, color ? b->black_king_pos : b->white_king_pos, color))
         kvuln = true;
     for(int j = 0; j < i && !can_move; j++) {
-        move_C(&b, move[j]);
-        if(!isVulnerable_C(&b, color ? b.black_king_pos : b.white_king_pos, color))
+        move_C(b, move[j]);
+        if(!isVulnerable_C(b, color ? b->black_king_pos : b->white_king_pos, color))
             can_move = true;
-        undoMove_C(&b, move[j]);
+        undoMove_C(b, move[j]);
     }
     //Checkmate or stalemate
     if(!can_move) isterm = true;
-    if(state.depth == 0 && state.white_to_move) isterm = true;
+    if(state->depth == 0 && state->white_to_move) isterm = true;
     if(isterm) {
         //if checkmate, return VICTORY, else LOSS
+        //printf("Returning %d\n", index);
         free(move);
+        free(b);
         if(!can_move && kvuln) return VICTORY;
         else return LOSS;
     }
 
-    printf("Depth %d, index:%d cont\n", state.depth, index);
+    //printf("Depth %d, index:%d cont\n", state.depth, index);
 
-    if(!state.white_to_move) {
+    if(!state->white_to_move) {
         float value = -INF;
+        State *next_state = (State*)malloc(sizeof(State));
         for(int j = 0; j < i; j++) {
-            State next_state = state;
-            if(!isValidMove_C(&b, color, move[j])) continue;
-            apply_move_C(&next_state, &move[j]);
+            *next_state = *state;
+            *b = state->board;
+            if(!isValidMove_C(b, color, move[j])) continue;
+            apply_move_C(next_state, &move[j]);
             
-            printf("CUDA check 3.0\n");
+            //printf("CUDA check 3.0, size: %d\n", i);
 
             value = max_cuda(value, minimax_cuda(next_state, index));
             if(value == VICTORY) {
                 free(move);
+                free(b);
+                free(next_state);
                 return value;
             }
         }
         free(move);
+        free(b);
+        free(next_state);
         return LOSS;
     }
     else {
         float value = INF;
+        State *next_state = (State*)malloc(sizeof(State));
         for(int j = 0; j < i; j++) {
-            State next_state = state;
-            if(!isValidMove_C(&b, color, move[j])) continue;
-            apply_move_C(&next_state, &move[j]);
+            *next_state = *state;
+            *b = state->board;
+            if(!isValidMove_C(b, color, move[j])) continue;
+            apply_move_C(next_state, &move[j]);
 
-            printf("CUDA check 3\n");
+            //printf("CUDA check 3\n");
             
             value = min_cuda(value, minimax_cuda(next_state, index));
             if(value == LOSS) {
+                free(b);
                 free(move);
+                free(next_state);
                 return value;
             }
         }
         free(move);
+        free(b);
+        free(next_state);
         return VICTORY;
     }
 }
@@ -1598,9 +1617,9 @@ minim_kernel(State *s, float* res, int *len) {
     // get State and Action corresponding to index
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(index == 0 && *len > MSIZE) {
+    /*if(index == 0) {
         printf("Length: %d\n", *len);
-    }
+    }*/
 
     if(index >= *len) return;
     //Assume one state
@@ -1610,27 +1629,31 @@ minim_kernel(State *s, float* res, int *len) {
     
     State state = s[index];
     
-    if(!(state.depth == 0 && state.white_to_move))
-        printf("values: %d, %d\n", state.depth, int(state.white_to_move));
+    /*if(!(state.depth == 1 && !state.white_to_move))
+        printf("values: %d, %d\n", state.depth, int(state.white_to_move));*/
     
     Move *move = (Move *)malloc(sizeof(Move)*MSIZE);
     if(move == NULL) printf("Out of space\n");
     int i = 0;    
-    ChessBoard b = state.board;
+    ChessBoard *b = (ChessBoard *)malloc(sizeof(ChessBoard));
+    *b = state.board;
     bool kvuln, can_move = false;
     bool isterm = false;
 
     
     int color = state.get_color();
-    getMoves_C(&b, color, move, move, &i);
+    getMoves_C(b, color, move, move, &i);
+    
+    //printf("Test: %d\n", int(move[i].from));
     if(i == 0) printf("Value: %d\n", i);
-    if(isVulnerable_C(&b, color ? b.black_king_pos : b.white_king_pos, color))
+    
+    if(isVulnerable_C(b, color ? b->black_king_pos : b->white_king_pos, color))
         kvuln = true;
     for(int j = 0; j < i && !can_move; j++) {
-        move_C(&b, move[j]);
-        if(!isVulnerable_C(&b, color ? b.black_king_pos : b.white_king_pos, color))
+        move_C(b, move[j]);
+        if(!isVulnerable_C(b, color ? b->black_king_pos : b->white_king_pos, color))
             can_move = true;
-        undoMove_C(&b, move[j]);
+        undoMove_C(b, move[j]);
     }
     //Checkmate or stalemate
     if(!can_move) isterm = true;
@@ -1638,13 +1661,14 @@ minim_kernel(State *s, float* res, int *len) {
     if(isterm) {
         //if checkmate, return VICTORY, else LOSS
         free(move);
+        free(b);
         if(!can_move && kvuln) res[index] = VICTORY;
         else res[index] = LOSS;
         //if(index == 0) printf("Successful return pt 2\n");
         return;
     }
 
-    if(index == 0) printf("Start\n");
+    //if(index == 0) printf("Start\n");
 
     if(!state.white_to_move) {
         //printf("Check %d\n", index);
@@ -1652,17 +1676,30 @@ minim_kernel(State *s, float* res, int *len) {
         float value = -INF;
         for(int j = 0; j < i; j++) {
             State next_state = state;
-            if(!isValidMove_C(&b, color, move[j])) continue;
+            *b = state.board;
+            
+            if(!isValidMove_C(b, color, move[j])){
+                //printf("Skipped %d %d\n", index, j);
+                continue;
+            }
 
-            printf("Check2.0 %d\n", index);
+            //printf("Check2.0 %d %d %d\n", index, j, i);
 
             apply_move_C(&next_state, &move[j]);
 
-            printf("Check3.0 %d\n", index);
+            //printf("Check3.0 %d %d %d\n", index, j, i);
             
-            value = max_cuda(value, minimax_cuda(next_state, index));
+            float val = minimax_cuda(&next_state, index);
+            
+            //printf("Checkout %d %d %d\n", index, j, i);
+            
+            value = max_cuda(value, val);
+            
+            //printf("Check result %d %d\n", index, j);
+            
             if(value == VICTORY) {
                 free(move);
+                free(b);
                 res[index] = value;
                 return;
             }
@@ -1674,17 +1711,19 @@ minim_kernel(State *s, float* res, int *len) {
         float value = INF;
         for(int j = 0; j < i; j++) {
             State next_state = state;
-            if(!isValidMove_C(&b, color, move[j])) continue;
+            *b = state.board;
+            if(!isValidMove_C(b, color, move[j])) continue;
 
-            printf("Check2 %d\n", index);
+            //printf("Check2 %d\n", index);
 
             apply_move_C(&next_state, &move[j]);
 
-            printf("Check3 %d\n", index);
+            //printf("Check3 %d\n", index);
             
-            value = min_cuda(value, minimax_cuda(next_state, index));
+            value = min_cuda(value, minimax_cuda(&next_state, index));
             if(value == LOSS) {
                 free(move);
+                free(b);
                 res[index] = value;
                 return;
             }
@@ -1692,6 +1731,7 @@ minim_kernel(State *s, float* res, int *len) {
         res[index] = VICTORY;
     }
     free(move);
+    free(b);
 }
 
 float mini_Rec_CUDA(State state, bool *set) {
@@ -1709,14 +1749,14 @@ float mini_Rec_CUDA(State state, bool *set) {
     
     if(state.is_terminal())
         return state.evaluate_minimax();
-    if(state.depth == 1 && state.white_to_move) {
+    if(state.depth == 2 && !state.white_to_move) {
         //Build array of States
         State *st = (State*)malloc(sizeof(State)*actions.size());
         for(int i = 0; i < actions.size(); i++) {
             st[i] = state;
             st[i].apply_action(actions.at(i));
-            if(!(st[i].depth == 0 && st[i].white_to_move))
-                printf("isTerm test inputs wrong!\n");
+            /*if(!(st[i].depth == 1 && !st[i].white_to_move))
+                printf("isTerm test inputs wrong!\n");*/
         }
         
         int numState = actions.size();
@@ -1925,7 +1965,7 @@ minimaxCuda(State state, bool *set) {
 
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
-    if(state.depth == 1 && state.white_to_move) {
+    if(state.depth == 2 && !state.white_to_move) {
         //Build array of States
         State *st = (State*)malloc(sizeof(State)*actions.size());
         for(int i = 0; i < actions.size(); i++) {
