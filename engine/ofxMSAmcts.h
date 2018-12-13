@@ -21,7 +21,7 @@
 #define TREE_PARALLEL 0
 #define ROOT_PARALLEL 1
 
-#define OCCUPANCY_LOSS -0.1
+#define OCCUPANCY_LOSS ((parallel_scheme == TREE_PARALLEL) ? -0.1 : 0)
 #define IF_USE_LOCK if(parallel_scheme == TREE_PARALLEL)
 
 #define BUFSIZE 1024
