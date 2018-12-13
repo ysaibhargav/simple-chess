@@ -21,6 +21,9 @@
 #define TREE_PARALLEL 0
 #define ROOT_PARALLEL 1
 
+#define OCCUPANCY_LOSS -0.1
+#define IF_USE_LOCK if(parallel_scheme == TREE_PARALLEL)
+
 #define BUFSIZE 1024
 
 typedef std::chrono::high_resolution_clock Clock;
@@ -60,7 +63,7 @@ namespace msa {
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 100000 ),
+          max_iterations( 1000000 ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
@@ -97,8 +100,10 @@ namespace msa {
           int num_children = node->get_num_children();
           for(int i = 0; i < num_children; i++) {
             TreeNode* child = node->get_child(i);
+            IF_USE_LOCK omp_set_lock(&(child->lck));
             float uct_exploitation = (float)child->get_value() / (child->get_num_visits() + FLT_EPSILON);
             float uct_exploration = sqrt( log((float)node->get_num_visits() + 1) / (child->get_num_visits() + FLT_EPSILON) );
+            IF_USE_LOCK omp_unset_lock(&(child->lck));
             float uct_score = uct_exploitation + uct_k * uct_exploration;
 
             if(uct_score > best_utc_score) {
@@ -252,25 +257,32 @@ namespace msa {
                 // indicate start of loop
                 //timer.loop_start();
                 
-                if(minimax_depth_trigger >= (root_node.state.depth - 1)) {
+                if(use_minimax_selection && minimax_depth_trigger >= (root_node.state.depth - 1)) {
                   auto atomic_t_start = Clock::now();
                   #pragma omp atomic read
                   read_found_proven_move = found_proven_move;
                   atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                 }
                 
+                
                 if(read_found_proven_move) continue;
-
+                
                 auto selection_t_start = Clock::now();
                 // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
                 if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
-                  TreeNode *best_node = root_node.proven_child; 
                   auto atomic_t_start = Clock::now();
-                  #pragma omp critical
+
+                  omp_set_lock(&(root_node.lck));
                   {
-                    proven_move = Move(best_node->get_action().regular);
-                    found_proven_move = true;
+                    TreeNode *best_node = root_node.proven_child; 
+                    //#pragma omp critical
+                    {
+                      proven_move = Move(best_node->get_action().regular);
+                      found_proven_move = true;
+                    }
                   }
+                  omp_unset_lock(&(root_node.lck));
+
                   atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   //if(debug)
                   printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
@@ -279,14 +291,27 @@ namespace msa {
 
                 bool found_proven_node = false;
                 TreeNode* node = &root_node;
-                while(!node->is_terminal() && node->is_fully_expanded()) {
+                //while(!node->is_terminal() && node->is_fully_expanded()) {
+                while(true) {
+                  IF_USE_LOCK omp_set_lock(&(node->lck));
+                  if(node->is_terminal()) {
+                    IF_USE_LOCK omp_unset_lock(&(node->lck));
+                    break;
+                  }
+                  if(!node->is_fully_expanded()) {
+                    break;  
+                  }
                   if(use_minimax_selection && node->proved != NOT_PROVEN){
                     found_proven_node = true;
+                    IF_USE_LOCK omp_unset_lock(&(node->lck));
                     break;
                   }
                   //TODO(sai): get best uct child and proving in critical block 
                   //TODO(sai): virtual loss
                   node = get_best_uct_child(node, uct_k);
+                  IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
+                  IF_USE_LOCK omp_set_lock(&(node->lck));
+                  node->value += OCCUPANCY_LOSS;
 
                   if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
                       (node->state.depth <= minimax_depth_trigger) &&
@@ -303,12 +328,16 @@ namespace msa {
                     else node->proved = PROVEN_LOSS;
                     found_proven_node = true;
                     if(node->agent_id == BLACK_ID && node->proved == PROVEN_VICTORY && node->parent) {
+                      IF_USE_LOCK omp_set_lock(&(node->parent->lck));
                       node->parent->proved = PROVEN_VICTORY;
                       node->parent->proven_child = node;
+                      IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
                     }
                     if(node->agent_id == WHITE_ID && node->proved == PROVEN_LOSS && node->parent) {
+                      IF_USE_LOCK omp_set_lock(&(node->parent->lck));
                       node->parent->proved = PROVEN_LOSS;
                       node->parent->proven_child = node;
+                      IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
                     }
                     break;
                   }
@@ -318,6 +347,7 @@ namespace msa {
                     node->action.regular.print();
                     node->state.board.print();
                   }
+                  IF_USE_LOCK omp_unset_lock(&(node->lck));
                 }
                 selection_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - selection_t_start).count();
 
@@ -326,6 +356,12 @@ namespace msa {
                 // TODO(sai): critical
                 if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                   node = node->expand();
+                  IF_USE_LOCK omp_set_lock(&(node->lck));
+                  node->value += OCCUPANCY_LOSS;
+                  IF_USE_LOCK omp_unset_lock(&(node->lck));
+
+                  IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
+                  
                   if(debug) {
                     printf("Expanded move is ");
                     node->action.regular.print();
@@ -383,9 +419,11 @@ namespace msa {
                 Action first_action;
                 if(debug) printf("BACKPROP\n");
                 while(node) {
-                  // TODO(sai): critical
-                  // TODO(sai): critical
+                  IF_USE_LOCK omp_set_lock(&(node->lck));
                   node->update(rewards);
+                  node->value -= OCCUPANCY_LOSS;
+                  IF_USE_LOCK omp_unset_lock(&(node->lck));
+
                   if(debug) {
                     printf("Node color is %d\n", node->agent_id);
                     printf("Node value is %f\n", node->get_value());
@@ -402,7 +440,8 @@ namespace msa {
                 backprop_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - backprop_t_start).count();
 
                 // find most visited child
-                per_thread_best_nodes[omp_get_thread_num()] = get_most_visited_child(&root_node);
+                if(parallel_scheme == ROOT_PARALLEL)
+                  per_thread_best_nodes[omp_get_thread_num()] = get_most_visited_child(&root_node);
 
                 // indicate end of loop for timer
                 //timer.loop_end();
@@ -413,16 +452,19 @@ namespace msa {
               
               if(!found_proven_move){
                 printf("Proven move not found!\n");
-                int most_visits = -1;
                 TreeNode* best_node = NULL;
-                for(int node_idx=0; node_idx<num_threads; node_idx++){
-                  TreeNode* current_node = per_thread_best_nodes[node_idx]; 
-                  int num_visits = current_node->get_num_visits();
-                  if(num_visits > most_visits){
-                    best_node = current_node;
-                    most_visits = num_visits;
+                if(parallel_scheme == ROOT_PARALLEL){
+                  int most_visits = -1;
+                  for(int node_idx=0; node_idx<num_threads; node_idx++){
+                    TreeNode* current_node = per_thread_best_nodes[node_idx]; 
+                    int num_visits = current_node->get_num_visits();
+                    if(num_visits > most_visits){
+                      best_node = current_node;
+                      most_visits = num_visits;
+                    }
                   }
                 }
+                else best_node = get_most_visited_child(&root_node);
                 proven_move = best_node->get_action().regular;
               }            
 

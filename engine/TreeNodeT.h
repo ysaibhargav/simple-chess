@@ -39,12 +39,12 @@ namespace msa {
           is_root(is_root),
           init_lock(init_lock)
           {
-            if(init_lock) omp_init_lock(&lck);
+            if(is_root || init_lock) omp_init_lock(&lck);
           }
 
         ~TreeNodeT()
         {
-          if(init_lock) omp_destroy_lock(&lck);
+          if(is_root || init_lock) omp_destroy_lock(&lck);
         }
 
         //--------------------------------------------------------------
