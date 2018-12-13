@@ -217,7 +217,8 @@ namespace msa {
             bool read_found_proven_move;
             State _current_state(depth, white_to_move, _board); 
             // initialize root TreeNode with current state
-            TreeNode root_node(_current_state, NULL, (parallel_scheme == ROOT_PARALLEL));
+            TreeNode root_node(_current_state, NULL, (parallel_scheme == ROOT_PARALLEL),
+              (parallel_scheme == TREE_PARALLEL));
             if(debug) {
               printf("ROOT\n");
               printf("Node color is %d\n", root_node.agent_id);

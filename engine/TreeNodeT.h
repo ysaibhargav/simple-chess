@@ -26,7 +26,7 @@ namespace msa {
 
         public:
         //--------------------------------------------------------------
-        TreeNodeT(State& state, TreeNodeT* parent = NULL, bool is_root=false):
+        TreeNodeT(State& state, TreeNodeT* parent = NULL, bool is_root=false, bool init_lock=false):
           state(state),
           action(),
           parent(parent),
@@ -36,10 +36,16 @@ namespace msa {
           value(0),
           depth(parent ? parent->depth + 1 : 0),
           proved(NOT_PROVEN),
-          is_root(is_root)
+          is_root(is_root),
+          init_lock(init_lock)
           {
+            if(init_lock) omp_init_lock(&lck);
           }
 
+        ~TreeNodeT()
+        {
+          if(init_lock) omp_destroy_lock(&lck);
+        }
 
         //--------------------------------------------------------------
         // expand by adding a single child
@@ -135,6 +141,9 @@ namespace msa {
         int proved;
         bool is_root;
 
+        bool init_lock;
+        omp_lock_t lck;
+
         std::vector< Ptr > children;	// all current children
         std::vector< Action > actions;			// possible actions from this state
 
@@ -146,7 +155,7 @@ namespace msa {
           child_state.apply_action(new_action);
 
           // create a new TreeNode with the same state (will get cloned) as this TreeNode
-          TreeNodeT* child_node = new TreeNodeT(child_state, this, false);
+          TreeNodeT* child_node = new TreeNodeT(child_state, this, false, init_lock);
 
           // set the action of the child to be the new action
           child_node->action = new_action;
