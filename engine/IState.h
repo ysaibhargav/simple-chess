@@ -65,7 +65,7 @@ class Action {
         float minimax_value;
 };
 
-class Action_cuda {
+DEV class Action_cuda {
     public:
         DEV Action_cuda(Move &regular, float minimax_value=-1):
             regular(regular),
@@ -77,7 +77,7 @@ class Action_cuda {
         float minimax_value;
 };
 
-class State {
+HOST DEV class State {
 
     public:
         HOST DEV State(int depth, int white_to_move, ChessBoard board):

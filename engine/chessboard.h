@@ -50,7 +50,7 @@
 
 
 
-struct Move
+HOST DEV struct Move
 {
 	/*
 	* Prints sth. like "Black queen from D8 to D7."
@@ -67,7 +67,7 @@ struct Move
 	char capture;	// piece that resides at destination square
 };
 
-struct ChessBoard
+HOST DEV struct ChessBoard
 {
 	enum Position {
 		A1 = 0, B1, C1, D1, E1, F1, G1, H1,
@@ -203,21 +203,21 @@ struct ChessBoard
 	* This is used to determine if castling is legal or if kings are in check.
 	* En passant is not taken into account.
 	*/
-	bool isVulnerable(int pos, int color) const;
+	HOST DEV bool isVulnerable(int pos, int color) const;
 
 	/*
 	* True if move is a valid move for player of given color. Please note, that
 	* a move that puts the player's own king in check, is also treated as
 	* invalid.
 	*/
-	bool isValidMove(int color, Move & move);
+	HOST bool isValidMove(int color, Move & move);
 
 	/*
 	* Returns the status of player of given color. This method is not declared
 	* const, because it needs to simulate moves on the board to draw a
 	* conclusion.
 	*/
-	ChessPlayer::Status getPlayerStatus(int color);
+	HOST ChessPlayer::Status getPlayerStatus(int color);
     
     /*
 	* True if move is a valid move for player of given color. Please note, that

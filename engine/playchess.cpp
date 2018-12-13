@@ -53,7 +53,9 @@ int main(int argc, char *argv[]) {
         //    turn = BLACK;
     }
 
-	for(;;) {
+    msa::mcts::Action r = msa::mcts::minimaxCuda(state);
+
+	for(;false;) {
 		// show board
 		state.board.print();
         if(state.is_terminal())
