@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
 	list<Move> regulars, nulls;
 	int turn = WHITE;
 	bool found;
+    bool flag = false;
 
 
 
@@ -53,9 +54,10 @@ int main(int argc, char *argv[]) {
         //    turn = BLACK;
     }
 
-    msa::mcts::Action r = msa::mcts::minimaxCuda(state);
+    //msa::mcts::Action r = msa::mcts::minimaxCuda(state);
+    //printf("Move is from %d to %d\n", int(r.regular.from), int(r.regular.to));
 
-	for(;false;) {
+	for(;;) {
 		// show board
 		state.board.print();
         if(state.is_terminal())
@@ -63,7 +65,7 @@ int main(int argc, char *argv[]) {
 
 		// query player's choice
 		if(turn) {
-			found = black.run(state, action);
+			found = black.run(state, action, &flag);
         }
 		else {
 			found = white.getMove(state.board, action.regular);

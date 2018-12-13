@@ -12,7 +12,7 @@
 
 #define INF 9
 #define VICTORY 1
-#define LOSS -1
+#define LOSS 0
 #define MSIZE 100
 
 // Pieces defined in lower 4 bits
@@ -1598,7 +1598,7 @@ minim_kernel(State *s, float* res, int *len) {
     // get State and Action corresponding to index
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(index == 0) {
+    if(index == 0 && *len > MSIZE) {
         printf("Length: %d\n", *len);
     }
 
@@ -1610,6 +1610,9 @@ minim_kernel(State *s, float* res, int *len) {
     
     State state = s[index];
     
+    if(!(state.depth == 0 && state.white_to_move))
+        printf("values: %d, %d\n", state.depth, int(state.white_to_move));
+    
     Move *move = (Move *)malloc(sizeof(Move)*MSIZE);
     if(move == NULL) printf("Out of space\n");
     int i = 0;    
@@ -1620,6 +1623,7 @@ minim_kernel(State *s, float* res, int *len) {
     
     int color = state.get_color();
     getMoves_C(&b, color, move, move, &i);
+    if(i == 0) printf("Value: %d\n", i);
     if(isVulnerable_C(&b, color ? b.black_king_pos : b.white_king_pos, color))
         kvuln = true;
     for(int j = 0; j < i && !can_move; j++) {
@@ -1636,6 +1640,8 @@ minim_kernel(State *s, float* res, int *len) {
         free(move);
         if(!can_move && kvuln) res[index] = VICTORY;
         else res[index] = LOSS;
+        //if(index == 0) printf("Successful return pt 2\n");
+        return;
     }
 
     if(index == 0) printf("Start\n");
@@ -1655,7 +1661,11 @@ minim_kernel(State *s, float* res, int *len) {
             printf("Check3.0 %d\n", index);
             
             value = max_cuda(value, minimax_cuda(next_state, index));
-            if(value == VICTORY) res[index] = value;
+            if(value == VICTORY) {
+                free(move);
+                res[index] = value;
+                return;
+            }
         }
         res[index] = LOSS;
     }
@@ -1673,15 +1683,233 @@ minim_kernel(State *s, float* res, int *len) {
             printf("Check3 %d\n", index);
             
             value = min_cuda(value, minimax_cuda(next_state, index));
-            if(value == LOSS) res[index] = value;
+            if(value == LOSS) {
+                free(move);
+                res[index] = value;
+                return;
+            }
         }
         res[index] = VICTORY;
     }
     free(move);
 }
 
+float mini_Rec_CUDA(State state, bool *set) {
+    State* s;
+    float* res;
+    float* resultarray;
+    int len;
+
+    const int threadsPerBlock = 64;
+
+    std::vector<Action> actions;
+    state.get_actions(actions);
+    len = actions.size();
+    const int blocks = (len + threadsPerBlock - 1)/threadsPerBlock;
+    
+    if(state.is_terminal())
+        return state.evaluate_minimax();
+    if(state.depth == 1 && state.white_to_move) {
+        //Build array of States
+        State *st = (State*)malloc(sizeof(State)*actions.size());
+        for(int i = 0; i < actions.size(); i++) {
+            st[i] = state;
+            st[i].apply_action(actions.at(i));
+            if(!(st[i].depth == 0 && st[i].white_to_move))
+                printf("isTerm test inputs wrong!\n");
+        }
+        
+        int numState = actions.size();
+        int len = actions.size();
+        
+        //call CUDA kernel to evaluate_minimax
+        if(!state.white_to_move){
+            float value = -INF;
+            int *l;
+            cudaError_t errCode;
+            resultarray = (float*)malloc(sizeof(float)*len);
+            // execute kernel
+            /*for(int i = 0; i < len; i++) {
+                printf("Initial Value %d: %f\n", i, resultarray[i]);
+            }*/
+            
+            /*if(st[0].depth == 0 && st[0].white_to_move)
+                printf("isTerm test inputs correct\n");*/
+            
+            // pass values to GPU
+
+            cudaMalloc((void**)&s, sizeof(State) * numState);
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error cudaMalloc s \
+not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1744);
+            }
+            cudaMalloc((void**)&res, sizeof(float) * len);
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error cudaMalloc res \
+not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1751);
+            }
+            cudaMalloc((void**)&l, sizeof(int));
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error cudaMalloc l \
+not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1758);
+            }
+
+            cudaCheckError(cudaMemcpy(s, (void *)st, sizeof(State)*numState, 
+                    cudaMemcpyHostToDevice));
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error cudaMemcpy s \
+not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1767);
+            }
+            cudaCheckError(cudaMemcpy(l, (void *)&len, sizeof(int), cudaMemcpyHostToDevice));
+            
+            if(!(*set)) {
+                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
+                *set = !(*set);
+            }
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured before kernel launch with \
+not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1776);
+            }
+
+            // execute kernel
+            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
+
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1785);
+            }
+            //printf("Successful return1.0\n");
+
+            cudaCheckError(cudaDeviceSynchronize());
+
+            cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
+                    cudaMemcpyDeviceToHost));
+
+            //free values
+            cudaFree(s);
+            cudaFree(res);
+            cudaFree(l);
+
+            //use resultarray
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1803);
+            }
+            //printf("Successful return\n");
+            free(st);
+            for(int i = 0; i < len; i++) {
+                value = max(value, resultarray[i]);
+                if(value == VICTORY) {
+                    free(resultarray);
+                    //printf("Found result, %d\n", i);
+                    return VICTORY;
+                }
+                //printf("Value %d: %f\n", i, resultarray[i]);
+            }
+            free(resultarray);
+
+            //value = max(value, minimax(next_state));
+            //if(value == VICTORY)
+                //return Action(it->regular, it->nulls, value);
+            return LOSS;
+        }
+        else {
+            printf("White to move\n");
+            float value = INF;
+            int *l;
+
+            cudaError_t errCode;
+     
+            resultarray = (float*)malloc(sizeof(float)*len);
+             // execute kernel
+             // pass values to GPU
+            cudaMalloc((void**)&s, sizeof(State) * numState);
+            cudaMalloc((void**)&res, sizeof(float) * len);
+            cudaMalloc((void**)&l, sizeof(int));
+
+            cudaMemcpy(s, (void*)st, sizeof(State)*numState,
+                    cudaMemcpyHostToDevice);
+            cudaMemcpy(l, (void*)&len, sizeof(int), cudaMemcpyHostToDevice);
+             // execute kernel
+             
+            if(!(*set)) {
+                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
+                *set = !(*set);
+            }
+             
+            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
+            
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1846);
+            }
+     
+            cudaCheckError(cudaDeviceSynchronize());
+             
+            cudaMemcpy(resultarray, res, sizeof(float)*len,
+                    cudaMemcpyDeviceToHost);
+             
+            //free values
+            cudaFree(s);
+            cudaFree(res);
+            cudaFree(l);
+            //use resultarray
+            
+            free(st);
+            //remove nulls?
+            for(int i = 0; i < len; i++) {
+                value = min(value, resultarray[i]);
+                if(value == LOSS) {
+                  free(resultarray);
+                  return LOSS;
+                }
+            }
+            free(resultarray);
+            return VICTORY;
+        }
+    }    
+
+    if(!state.white_to_move){
+        float value = -INF;
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = max(value, mini_Rec_CUDA(next_state, set));
+            if(value == VICTORY) {
+                printf("Found path to VIC\n");
+                return value;
+            }
+        } 
+        return LOSS;
+    }
+    else {
+        float value = INF;
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = min(value, mini_Rec_CUDA(next_state, set));
+            if(value == LOSS) return value;
+        } 
+        printf("No path to LOSS\n");
+        return VICTORY;
+    }
+}
+
 Action
-minimaxCuda(State state) {
+minimaxCuda(State state, bool *set) {
     State* s;
     int numState = 1;
     float* res;
@@ -1695,126 +1923,167 @@ minimaxCuda(State state) {
     len = actions.size();
     const int blocks = (len + threadsPerBlock - 1)/threadsPerBlock;
 
-    State *st = (State *)malloc(sizeof(State)*len);
-    for(int i = 0; i < len; i++) {
-        st[i] = state;
-        st[i].apply_action(actions.at(i));
-    }
-    numState = len;
-
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
+    if(state.depth == 1 && state.white_to_move) {
+        //Build array of States
+        State *st = (State*)malloc(sizeof(State)*actions.size());
+        for(int i = 0; i < actions.size(); i++) {
+            st[i] = state;
+            st[i].apply_action(actions.at(i));
+        }
+        
+        numState = len;
+        
+        //call CUDA kernel to evaluate_minimax
+        if(!state.white_to_move){
+            float value = -INF;
+            int *l;
+            cudaError_t errCode;
+            resultarray = (float*)malloc(sizeof(float)*len);
+            // execute kernel
+            // pass values to GPU
+
+            cudaMalloc((void**)&s, sizeof(State) * numState);
+            cudaMalloc((void**)&res, sizeof(float) * len);
+            cudaMalloc((void**)&l, sizeof(int));
+
+            cudaCheckError(cudaMemcpy(s, (void *)st, sizeof(State)*numState, 
+                    cudaMemcpyHostToDevice));
+            cudaCheckError(cudaMemcpy(l, (void *)&len, sizeof(int), cudaMemcpyHostToDevice));
+            
+            if(!(*set)) {
+                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
+                *set = !(*set);
+            }
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured before k launch: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1948);
+            }
+
+            // execute kernel
+            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
+
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1957);
+            }
+
+            cudaCheckError(cudaDeviceSynchronize());
+
+            cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
+                    cudaMemcpyDeviceToHost));
+
+            //free values
+            cudaFree(s);
+            cudaFree(res);
+            cudaFree(l);
+
+            //use resultarray
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(1974);
+            }
+            
+            free(st);
+            for(int i = 0; i < len; i++) {
+                value = max(value, resultarray[i]);
+                if(value == VICTORY) {
+                    free(resultarray);
+                    return Action(actions.at(i).regular, actions.at(i).nulls, VICTORY);
+                }
+            }
+            free(resultarray);
+
+            //value = max(value, minimax(next_state));
+            //if(value == VICTORY)
+                //return Action(it->regular, it->nulls, value);
+            return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+        }
+        else {
+            printf("White to move\n");
+            float value = INF;
+            int *l;
+
+            cudaError_t errCode;
+     
+            resultarray = (float*)malloc(sizeof(float)*len);
+             // execute kernel
+             // pass values to GPU
+            cudaMalloc((void**)&s, sizeof(State) * numState);
+            cudaMalloc((void**)&res, sizeof(float) * len);
+            cudaMalloc((void**)&l, sizeof(int));
+
+            cudaMemcpy(s, (void*)st, sizeof(State)*numState,
+                    cudaMemcpyHostToDevice);
+            cudaMemcpy(l, (void*)&len, sizeof(int), cudaMemcpyHostToDevice);
+             // execute kernel
+            
+            if(!(*set)) {
+                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
+                *set = !(*set);
+            }            
+            
+            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
+            
+            errCode = cudaPeekAtLastError();
+            if (errCode != cudaSuccess) {
+                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
+                exit(2017);
+            }
+     
+            cudaCheckError(cudaDeviceSynchronize());
+             
+            cudaMemcpy(resultarray, res, sizeof(float)*len,
+                    cudaMemcpyDeviceToHost);
+             
+            //free values
+            cudaFree(s);
+            cudaFree(res);
+            cudaFree(l);
+            //use resultarray
+            
+            free(st);
+            //remove nulls?
+            for(int i = 0; i < len; i++) {
+                value = min(value, resultarray[i]);
+                if(value == LOSS) {
+                  free(resultarray);
+                  return Action(actions.at(i).regular, actions.at(i).nulls, LOSS);
+                }
+            }
+            free(resultarray);
+            return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+        }
+    }
     if(!state.white_to_move){
         float value = -INF;
-        int *l;
-        cudaError_t errCode;
-        resultarray = (float*)malloc(sizeof(float)*len);
-        // execute kernel
-        for(int i = 0; i < len; i++) {
-            printf("Initial Value %d: %f\n", i, resultarray[i]);
-        }
-        // pass values to GPU
-
-        cudaMalloc((void**)&s, sizeof(State) * numState);
-        cudaMalloc((void**)&res, sizeof(float) * len);
-        cudaMalloc((void**)&l, sizeof(int));
-
-        cudaCheckError(cudaMemcpy(s, (void *)st, sizeof(State)*numState, 
-                cudaMemcpyHostToDevice));
-        cudaCheckError(cudaMemcpy(l, (void *)&len, sizeof(int), cudaMemcpyHostToDevice));
-        
-        cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
-        errCode = cudaPeekAtLastError();
-        if (errCode != cudaSuccess) {
-            fprintf(stderr, "WARNING: A CUDA error occured before kernel launch: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-        }
-
-        // execute kernel
-        minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
-
-        errCode = cudaPeekAtLastError();
-        if (errCode != cudaSuccess) {
-            fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-        }
-
-        cudaCheckError(cudaDeviceSynchronize());
-
-        cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
-                cudaMemcpyDeviceToHost));
-
-        //free values
-        cudaFree(s);
-        cudaFree(res);
-
-        //use resultarray
-        errCode = cudaPeekAtLastError();
-        if (errCode != cudaSuccess) {
-            fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-        }
-        
-        free(st);
-        for(int i = 0; i < len; i++) {
-            if(resultarray[i] == VICTORY)
-                return Action(actions.at(i).regular, actions.at(i).nulls, VICTORY);
-            else
-                value = value < resultarray[i] ? resultarray[i] : value;
-            printf("Value %d: %f\n", i, resultarray[i]);
-        }
-        free(resultarray);
-
-        //value = max(value, minimax(next_state));
-        //if(value == VICTORY)
-            //return Action(it->regular, it->nulls, value);
-        return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = max(value, mini_Rec_CUDA(next_state, set));
+            if(value == VICTORY) {
+                printf("VICTORY\n");
+                return Action(it->regular, it->nulls, VICTORY);
+            }
+        } 
+        return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);;
     }
     else {
-        printf("White to move\n");
         float value = INF;
-        int *l;
-
-        cudaError_t errCode;
- 
-        resultarray = (float*)malloc(sizeof(float)*len);
-         // execute kernel
-         // pass values to GPU
-        cudaMalloc((void**)&s, sizeof(State) * numState);
-        cudaMalloc((void**)&res, sizeof(float) * len);
-        cudaMalloc((void**)&l, sizeof(int));
-
-        cudaMemcpy(s, (void*)st, sizeof(State)*numState,
-                cudaMemcpyHostToDevice);
-        cudaMemcpy(l, (void*)&len, sizeof(int), cudaMemcpyHostToDevice);
-         // execute kernel
-        minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
-        
-        errCode = cudaPeekAtLastError();
-        if (errCode != cudaSuccess) {
-            fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-        }
- 
-        cudaCheckError(cudaDeviceSynchronize());
-         
-        cudaMemcpy(resultarray, res, sizeof(float)*len,
-                cudaMemcpyDeviceToHost);
-         
-        //free values
-        cudaFree(s);
-        cudaFree(res);
-        //use resultarray
-        
-        free(st);
-        //remove nulls?
-        for(int i = 0; i < len; i++) {
-            if(resultarray[i] == LOSS) {
-              free(resultarray);
-              return Action(actions.at(i).regular, actions.at(i).nulls, LOSS);
+        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
+            State next_state = state;
+            next_state.apply_action(*it);
+            value = min(value, mini_Rec_CUDA(next_state, set));
+            if(value == LOSS) {
+                return Action(it->regular, it->nulls, LOSS);
             }
-            else
-              value = value > resultarray[i] ? resultarray[i] : value;
-        }
-        free(resultarray);
-        return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
-  }
+        } 
+        return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);;
+    }
 }
 }
 }

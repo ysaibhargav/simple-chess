@@ -21,7 +21,7 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 namespace msa {
     namespace mcts {
 
-        Action minimaxCuda(State state);
+        Action minimaxCuda(State state, bool *flag);
 		// State must comply with State Interface (see IState.h)
 		// Action can be anything (which your State class knows how to handle)
         template <class State, typename Action>
@@ -133,12 +133,12 @@ namespace msa {
 
 
             //--------------------------------------------------------------
-            bool run(State& current_state, Action &final_action, unsigned int seed = 1, std::vector<State>* explored_states = nullptr) {
+            bool run(State& current_state, Action &final_action, bool *flag, unsigned int seed = 1, std::vector<State>* explored_states = nullptr) {
                 if (current_state.is_terminal()) return false;
 
                 if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
                     //final_action = minimax2(State(current_state));
-                    final_action = minimaxCuda(State(current_state));
+                    final_action = minimaxCuda(State(current_state), flag);
                     return true;
                 }
 
