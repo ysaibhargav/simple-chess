@@ -222,7 +222,7 @@ namespace msa {
             bool read_found_proven_move;
             State _current_state(depth, white_to_move, _board); 
             // initialize root TreeNode with current state
-            TreeNode root_node(_current_state, NULL, (parallel_scheme == ROOT_PARALLEL),
+            TreeNode root_node(_current_state, NULL, true, 
               (parallel_scheme == TREE_PARALLEL));
             if(debug) {
               printf("ROOT\n");
@@ -272,6 +272,7 @@ namespace msa {
                 if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                   auto atomic_t_start = Clock::now();
 
+                  //printf("acquiring root lock, tid %d\n", omp_get_thread_num());
                   omp_set_lock(&(root_node.lck));
                   {
                     TreeNode *best_node = root_node.proven_child; 
@@ -282,6 +283,7 @@ namespace msa {
                     }
                   }
                   omp_unset_lock(&(root_node.lck));
+                  //printf("released root lock, tid %d\n", omp_get_thread_num());
 
                   atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   //if(debug)
@@ -293,9 +295,11 @@ namespace msa {
                 TreeNode* node = &root_node;
                 //while(!node->is_terminal() && node->is_fully_expanded()) {
                 while(true) {
+                  //printf("acquiring selection lock, tid %d\n", omp_get_thread_num());
                   IF_USE_LOCK omp_set_lock(&(node->lck));
                   if(node->is_terminal()) {
                     IF_USE_LOCK omp_unset_lock(&(node->lck));
+                    //printf("released selection lock, tid %d\n", omp_get_thread_num());
                     break;
                   }
                   if(!node->is_fully_expanded()) {
@@ -304,12 +308,15 @@ namespace msa {
                   if(use_minimax_selection && node->proved != NOT_PROVEN){
                     found_proven_node = true;
                     IF_USE_LOCK omp_unset_lock(&(node->lck));
+                    //printf("released selection lock, tid %d\n", omp_get_thread_num());
                     break;
                   }
                   //TODO(sai): get best uct child and proving in critical block 
                   //TODO(sai): virtual loss
                   node = get_best_uct_child(node, uct_k);
                   IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
+                  //printf("released selection lock, tid %d\n", omp_get_thread_num());
+                  //printf("acquiring child selection lock, tid %d\n", omp_get_thread_num());
                   IF_USE_LOCK omp_set_lock(&(node->lck));
                   node->value += OCCUPANCY_LOSS;
 
@@ -339,6 +346,8 @@ namespace msa {
                       node->parent->proven_child = node;
                       IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
                     }
+                    IF_USE_LOCK omp_unset_lock(&(node->lck));
+                    //printf("released child selection lock, tid %d\n", omp_get_thread_num());
                     break;
                   }
                   if(debug) {
@@ -348,6 +357,7 @@ namespace msa {
                     node->state.board.print();
                   }
                   IF_USE_LOCK omp_unset_lock(&(node->lck));
+                  //printf("released child selection lock, tid %d\n", omp_get_thread_num());
                 }
                 selection_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - selection_t_start).count();
 
@@ -356,11 +366,14 @@ namespace msa {
                 // TODO(sai): critical
                 if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                   node = node->expand();
+                  //printf("acquiring expansion lock, tid %d\n", omp_get_thread_num());
                   IF_USE_LOCK omp_set_lock(&(node->lck));
                   node->value += OCCUPANCY_LOSS;
                   IF_USE_LOCK omp_unset_lock(&(node->lck));
+                  //printf("released expansion lock, tid %d\n", omp_get_thread_num());
 
                   IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
+                  //printf("released parent expansion lock, tid %d\n", omp_get_thread_num());
                   
                   if(debug) {
                     printf("Expanded move is ");
@@ -419,10 +432,13 @@ namespace msa {
                 Action first_action;
                 if(debug) printf("BACKPROP\n");
                 while(node) {
+                  //printf("acquiring backprop lock, tid %d, depth %d\n", omp_get_thread_num(), (int)node->state.depth);
                   IF_USE_LOCK omp_set_lock(&(node->lck));
+                  //printf("acquired backprop lock, tid %d, depth %d\n", omp_get_thread_num(), (int)node->state.depth);
                   node->update(rewards);
                   node->value -= OCCUPANCY_LOSS;
                   IF_USE_LOCK omp_unset_lock(&(node->lck));
+                  //printf("released backprop lock, tid %d\n", omp_get_thread_num());
 
                   if(debug) {
                     printf("Node color is %d\n", node->agent_id);
