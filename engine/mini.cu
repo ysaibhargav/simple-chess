@@ -14,6 +14,7 @@
 #define VICTORY 1
 #define LOSS 0
 #define MSIZE 100
+#define CONDITION (state.depth==1 && !state.white_to_move)
 
 // Pieces defined in lower 4 bits
 #define EMPTY	0x00	// Empty square
@@ -1749,7 +1750,7 @@ float mini_Rec_CUDA(State state, bool *set) {
     
     if(state.is_terminal())
         return state.evaluate_minimax();
-    if(state.depth == 2 && !state.white_to_move) {
+    if(CONDITION) {
         //Build array of States
         State *st = (State*)malloc(sizeof(State)*actions.size());
         for(int i = 0; i < actions.size(); i++) {
@@ -1866,7 +1867,7 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             return LOSS;
         }
         else {
-            printf("White to move\n");
+            //printf("White to move\n");
             float value = INF;
             int *l;
 
@@ -1929,7 +1930,7 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             next_state.apply_action(*it);
             value = max(value, mini_Rec_CUDA(next_state, set));
             if(value == VICTORY) {
-                printf("Found path to VIC\n");
+                //printf("Found path to VIC\n");
                 return value;
             }
         } 
@@ -1943,7 +1944,7 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             value = min(value, mini_Rec_CUDA(next_state, set));
             if(value == LOSS) return value;
         } 
-        printf("No path to LOSS\n");
+        //printf("No path to LOSS\n");
         return VICTORY;
     }
 }
@@ -1965,7 +1966,7 @@ minimaxCuda(State state, bool *set) {
 
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
-    if(state.depth == 2 && !state.white_to_move) {
+    if(CONDITION) {
         //Build array of States
         State *st = (State*)malloc(sizeof(State)*actions.size());
         for(int i = 0; i < actions.size(); i++) {

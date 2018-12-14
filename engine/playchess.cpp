@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 	board.initDefaultSetup();
 
     // TODO(sai): set depth from PGN
-    int depth = 3;
+    int depth = 4;
     int white_to_move = 1;
     msa::mcts::State state(depth, white_to_move, board);
     msa::mcts::Action action;

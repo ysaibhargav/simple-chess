@@ -10,6 +10,7 @@ MCTS Code Based on the Java (Simon Lucas - University of Essex) and Python (Pete
 #include "MSALoopTimer.h"
 #include "minimax.h"
 #include <cfloat>
+#include <time.h>
 
 //#include "mini.cu"
 // Minimax selection criteria constants
@@ -137,8 +138,15 @@ namespace msa {
                 if (current_state.is_terminal()) return false;
 
                 if (use_minimax_selection && minimax_selection_criterion == ALWAYS) {
+                    
+                    //get start time
+                    time_t sTime = time(NULL);
                     //final_action = minimax2(State(current_state));
                     final_action = minimaxCuda(State(current_state), flag);
+                    //get end time
+                    time_t eTime = time(NULL);
+                    //print time taken
+                    printf("Time %.3f ms\n", 1000.f*(eTime - sTime));
                     return true;
                 }
 
