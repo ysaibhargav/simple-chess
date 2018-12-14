@@ -34,6 +34,7 @@ namespace msa {
           agent_id(!state.agent_id()),
           num_visits(0),
           value(0),
+          aux_value(0),
           depth(parent ? parent->depth + 1 : 0),
           proved(NOT_PROVEN),
           is_root(is_root),
@@ -114,7 +115,7 @@ namespace msa {
         int get_num_visits() const { return num_visits; }
 
         // accumulated value (wins)
-        float get_value() const { return value; }
+        float get_value() const { return value + aux_value; }
 
         // how deep the TreeNode is in the tree
         int get_depth() const { return depth; }
@@ -137,6 +138,7 @@ namespace msa {
 
         int num_visits;			// number of times TreeNode has been visited
         float value;			// value of this TreeNode
+        float aux_value;
         int depth;
         int proved;
         bool is_root;

@@ -17,11 +17,15 @@
 // Minimax selection criteria constants
 #define ALWAYS 0
 #define NONZERO_WINS 1
+#define MULTIPLE_THREAD_VISITS 2
+#define MULTIPLE_VISITS 3
 // Parallelism schemes
 #define TREE_PARALLEL 0
 #define ROOT_PARALLEL 1
 
-#define OCCUPANCY_LOSS ((parallel_scheme == TREE_PARALLEL) ? -0.1 : 0)
+#define OCCUPANCY_LOSS_VAL -0.1
+#define OCCUPANCY_LOSS (float)((parallel_scheme == TREE_PARALLEL) ? OCCUPANCY_LOSS_VAL : 0)
+#define VISIT_THRESHOLD 10
 #define IF_USE_LOCK if(parallel_scheme == TREE_PARALLEL)
 
 #define BUFSIZE 1024
@@ -63,7 +67,7 @@ namespace msa {
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 1000000 ),
+          max_iterations( 500000 ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
@@ -274,6 +278,7 @@ namespace msa {
 
                   //printf("acquiring root lock, tid %d\n", omp_get_thread_num());
                   omp_set_lock(&(root_node.lck));
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   {
                     TreeNode *best_node = root_node.proven_child; 
                     //#pragma omp critical
@@ -296,7 +301,9 @@ namespace msa {
                 //while(!node->is_terminal() && node->is_fully_expanded()) {
                 while(true) {
                   //printf("acquiring selection lock, tid %d\n", omp_get_thread_num());
+                  auto atomic_t_start = Clock::now();
                   IF_USE_LOCK omp_set_lock(&(node->lck));
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   if(node->is_terminal()) {
                     IF_USE_LOCK omp_unset_lock(&(node->lck));
                     //printf("released selection lock, tid %d\n", omp_get_thread_num());
@@ -317,14 +324,22 @@ namespace msa {
                   IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
                   //printf("released selection lock, tid %d\n", omp_get_thread_num());
                   //printf("acquiring child selection lock, tid %d\n", omp_get_thread_num());
+                  atomic_t_start = Clock::now();
                   IF_USE_LOCK omp_set_lock(&(node->lck));
-                  node->value += OCCUPANCY_LOSS;
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                  node->aux_value += OCCUPANCY_LOSS;
 
                   if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
                       (node->state.depth <= minimax_depth_trigger) &&
-                      (((node->agent_id == BLACK_ID) && (node->get_value() > 0.)) ||
-                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->get_value())))){
-                    assert(minimax_selection_criterion == NONZERO_WINS);
+                      (((minimax_selection_criterion == NONZERO_WINS) &&
+                      ((((node->agent_id == BLACK_ID) && (node->value > 0.)) ||
+                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->value))))) ||
+                      ((minimax_selection_criterion == MULTIPLE_VISITS) &&
+                      ((((node->agent_id == BLACK_ID) && (node->get_num_visits() > VISIT_THRESHOLD)) ||
+                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > VISIT_THRESHOLD))))) ||
+                      ((minimax_selection_criterion == MULTIPLE_THREAD_VISITS) &&
+                      (((node->agent_id == BLACK_ID) && (node->aux_value < OCCUPANCY_LOSS)) ||
+                       ((node->agent_id == WHITE_ID) && (node->aux_value < OCCUPANCY_LOSS)))))) {
                     printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
                     //float black_reward = minimax(node->get_state());
                     auto minimax_t_start = Clock::now();
@@ -367,8 +382,10 @@ namespace msa {
                 if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                   node = node->expand();
                   //printf("acquiring expansion lock, tid %d\n", omp_get_thread_num());
+                  auto atomic_t_start = Clock::now();
                   IF_USE_LOCK omp_set_lock(&(node->lck));
-                  node->value += OCCUPANCY_LOSS;
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                  node->aux_value += OCCUPANCY_LOSS;
                   IF_USE_LOCK omp_unset_lock(&(node->lck));
                   //printf("released expansion lock, tid %d\n", omp_get_thread_num());
 
@@ -433,10 +450,12 @@ namespace msa {
                 if(debug) printf("BACKPROP\n");
                 while(node) {
                   //printf("acquiring backprop lock, tid %d, depth %d\n", omp_get_thread_num(), (int)node->state.depth);
+                  auto atomic_t_start = Clock::now();
                   IF_USE_LOCK omp_set_lock(&(node->lck));
+                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   //printf("acquired backprop lock, tid %d, depth %d\n", omp_get_thread_num(), (int)node->state.depth);
                   node->update(rewards);
-                  node->value -= OCCUPANCY_LOSS;
+                  node->aux_value -= OCCUPANCY_LOSS;
                   IF_USE_LOCK omp_unset_lock(&(node->lck));
                   //printf("released backprop lock, tid %d\n", omp_get_thread_num());
 

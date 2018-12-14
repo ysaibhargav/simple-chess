@@ -140,7 +140,8 @@ int main(int argc, const char *argv[]) {
   bool use_minimax_rollouts = false;
   //unsigned minimax_depth_trigger = depth;
   bool use_minimax_selection = true;
-  unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
+  //unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
+  unsigned minimax_selection_criterion = MULTIPLE_VISITS;
   unsigned parallel_scheme = TREE_PARALLEL;
   bool debug = false;
   msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
