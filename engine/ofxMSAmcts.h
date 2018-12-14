@@ -329,17 +329,18 @@ namespace msa {
                   atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   node->aux_value += OCCUPANCY_LOSS;
 
-                  if(use_minimax_selection && (node->proved == NOT_PROVEN) &&
+                  bool _use_minimax_selection = (minimax_selection_criterion == NONZERO_WINS) && 
+                    (((node->agent_id == BLACK_ID) && (node->value > 0.)) ||
+                    ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->value)));
+                  _use_minimax_selection = _use_minimax_selection || 
+                    ((minimax_selection_criterion == MULTIPLE_VISITS) &&
+                    (node->get_num_visits() > VISIT_THRESHOLD));
+                  _use_minimax_selection = _use_minimax_selection || 
+                    ((minimax_selection_criterion == MULTIPLE_THREAD_VISITS) &&
+                    (node->aux_value < OCCUPANCY_LOSS));
+                  if(use_minimax_selection && (node->proved == NOT_PROVEN) && 
                       (node->state.depth <= minimax_depth_trigger) &&
-                      (((minimax_selection_criterion == NONZERO_WINS) &&
-                      ((((node->agent_id == BLACK_ID) && (node->value > 0.)) ||
-                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > (int)node->value))))) ||
-                      ((minimax_selection_criterion == MULTIPLE_VISITS) &&
-                      ((((node->agent_id == BLACK_ID) && (node->get_num_visits() > VISIT_THRESHOLD)) ||
-                       ((node->agent_id == WHITE_ID) && (node->get_num_visits() > VISIT_THRESHOLD))))) ||
-                      ((minimax_selection_criterion == MULTIPLE_THREAD_VISITS) &&
-                      (((node->agent_id == BLACK_ID) && (node->aux_value < OCCUPANCY_LOSS)) ||
-                       ((node->agent_id == WHITE_ID) && (node->aux_value < OCCUPANCY_LOSS)))))) {
+                      _use_minimax_selection) {
                     printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
                     //float black_reward = minimax(node->get_state());
                     auto minimax_t_start = Clock::now();
