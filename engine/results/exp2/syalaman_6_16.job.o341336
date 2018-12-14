@@ -1,0 +1,597 @@
+6.txt
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 562578
+Starting minimax at depth 3 from thread 9
+Found possible winning sequence in iteration 375107
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 125144
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 273
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 62760
+Starting minimax at depth 3 from thread 1
+Minimax from thread 6 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 750580
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 125442
+Starting minimax at depth 3 from thread 2
+Minimax from thread 9 finished with reward 0.000000
+Found possible winning sequence in iteration 250923
+Starting minimax at depth 3 from thread 4
+Found possible winning sequence in iteration 313313
+Starting minimax at depth 3 from thread 5
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 563430
+Starting minimax at depth 3 from thread 9
+Found possible winning sequence in iteration 688851
+Starting minimax at depth 3 from thread 11
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 876218
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 626097
+Starting minimax at depth 3 from thread 10
+Found possible winning sequence in iteration 814046
+Starting minimax at depth 3 from thread 13
+Minimax from thread 14 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Found possible winning sequence in iteration 189205
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 939308
+Starting minimax at depth 3 from thread 15
+Minimax from thread 10 finished with reward 0.000000
+Found possible winning sequence in iteration 689759
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 64723
+Starting minimax at depth 3 from thread 1
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 626368
+Starting minimax at depth 3 from thread 10
+Found possible winning sequence in iteration 252574
+Starting minimax at depth 3 from thread 4
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 313872
+Starting minimax at depth 3 from thread 5
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Found possible winning sequence in iteration 939575
+Starting minimax at depth 3 from thread 15
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 814962
+Starting minimax at depth 3 from thread 13
+Minimax from thread 13 finished with reward 1.000000
+Found child with proven victory in iteration 814964 by thread 13!
+Minimax from thread 10 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 9 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 437600
+Starting minimax at depth 3 from thread 7
+Found possible winning sequence in iteration 250158
+Starting minimax at depth 3 from thread 4
+Found possible winning sequence in iteration 937671
+Starting minimax at depth 3 from thread 15
+Found possible winning sequence in iteration 812832
+Starting minimax at depth 3 from thread 13
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 375650
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 875609
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 188108
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 785
+Starting minimax at depth 3 from thread 0
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Found possible winning sequence in iteration 313509
+Starting minimax at depth 3 from thread 5
+Found possible winning sequence in iteration 500970
+Starting minimax at depth 3 from thread 8
+Found possible winning sequence in iteration 688616
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 937993
+Starting minimax at depth 3 from thread 15
+Minimax from thread 6 finished with reward 0.000000
+Found possible winning sequence in iteration 876012
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 126511
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 751297
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 563606
+Starting minimax at depth 3 from thread 9
+Found possible winning sequence in iteration 626406
+Starting minimax at depth 3 from thread 10
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 188314
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 64363
+Starting minimax at depth 3 from thread 1
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Found possible winning sequence in iteration 437638
+Starting minimax at depth 3 from thread 7
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Minimax from thread 10 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Found possible winning sequence in iteration 813094
+Starting minimax at depth 3 from thread 13
+Found possible winning sequence in iteration 253276
+Starting minimax at depth 3 from thread 4
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 4 finished with reward 1.000000
+Found child with proven victory in iteration 253278 by thread 4!
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Minimax from thread 9 finished with reward 0.000000
+Minimax from thread 8 finished with reward 0.000000
+Minimax from thread 3 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 875092
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 937586
+Starting minimax at depth 3 from thread 15
+Found possible winning sequence in iteration 140
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 375145
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 312698
+Starting minimax at depth 3 from thread 5
+Found possible winning sequence in iteration 437712
+Starting minimax at depth 3 from thread 7
+Found possible winning sequence in iteration 187712
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 62716
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 812754
+Starting minimax at depth 3 from thread 13
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 6 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 375344
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 125466
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 625510
+Starting minimax at depth 3 from thread 10
+Found possible winning sequence in iteration 563089
+Starting minimax at depth 3 from thread 9
+Found possible winning sequence in iteration 500588
+Starting minimax at depth 3 from thread 8
+Found possible winning sequence in iteration 250620
+Starting minimax at depth 3 from thread 4
+Minimax from thread 13 finished with reward 0.000000
+Found possible winning sequence in iteration 313396
+Starting minimax at depth 3 from thread 5
+Found possible winning sequence in iteration 1112
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 750842
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 876529
+Starting minimax at depth 3 from thread 14
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 939222
+Starting minimax at depth 3 from thread 15
+Minimax from thread 6 finished with reward 0.000000
+Minimax from thread 12 finished with reward 0.000000
+Found possible winning sequence in iteration 188970
+Starting minimax at depth 3 from thread 3
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 688889
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 63254
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 125618
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 814567
+Starting minimax at depth 3 from thread 13
+Minimax from thread 13 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Found possible winning sequence in iteration 125986
+Starting minimax at depth 3 from thread 2
+Minimax from thread 10 finished with reward 0.000000
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 752811
+Starting minimax at depth 3 from thread 12
+Minimax from thread 9 finished with reward 0.000000
+Found possible winning sequence in iteration 441769
+Starting minimax at depth 3 from thread 7
+Found possible winning sequence in iteration 9268
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 189820
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 563496
+Starting minimax at depth 3 from thread 9
+Minimax from thread 3 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 63369
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 253398
+Starting minimax at depth 3 from thread 4
+Minimax from thread 9 finished with reward 0.000000
+Found possible winning sequence in iteration 689426
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 628806
+Starting minimax at depth 3 from thread 10
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 8 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 10 finished with reward 0.000000
+Found possible winning sequence in iteration 500952
+Starting minimax at depth 3 from thread 8
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 8 finished with reward 0.000000
+Minimax from thread 4 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 259435
+Starting minimax at depth 3 from thread 4
+Minimax from thread 4 finished with reward 0.000000
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 125113
+Starting minimax at depth 3 from thread 2
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 562877
+Starting minimax at depth 3 from thread 9
+Found possible winning sequence in iteration 338
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 937907
+Starting minimax at depth 3 from thread 15
+Found possible winning sequence in iteration 125319
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 625531
+Starting minimax at depth 3 from thread 10
+Found possible winning sequence in iteration 438040
+Starting minimax at depth 3 from thread 7
+Found possible winning sequence in iteration 375549
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 875613
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 750641
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 188381
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 63376
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 813417
+Starting minimax at depth 3 from thread 13
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 6 finished with reward 0.000000
+Found possible winning sequence in iteration 938128
+Starting minimax at depth 3 from thread 15
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 375731
+Starting minimax at depth 3 from thread 6
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Found possible winning sequence in iteration 967
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 750866
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 688875
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 813579
+Starting minimax at depth 3 from thread 13
+Found possible winning sequence in iteration 63675
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 251702
+Starting minimax at depth 3 from thread 4
+Found possible winning sequence in iteration 313918
+Starting minimax at depth 3 from thread 5
+Minimax from thread 10 finished with reward 0.000000
+Minimax from thread 15 finished with reward 0.000000
+Found possible winning sequence in iteration 625928
+Starting minimax at depth 3 from thread 10
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 502226
+Starting minimax at depth 3 from thread 8
+Minimax from thread 8 finished with reward 1.000000
+Found child with proven victory in iteration 502228 by thread 8!
+Minimax from thread 9 finished with reward 0.000000
+Minimax from thread 10 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 4 finished with reward 0.000000
+Minimax from thread 6 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 687601
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 250133
+Starting minimax at depth 3 from thread 4
+Found possible winning sequence in iteration 160
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 312700
+Starting minimax at depth 3 from thread 5
+Found possible winning sequence in iteration 437738
+Starting minimax at depth 3 from thread 7
+Found possible winning sequence in iteration 187791
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 937730
+Starting minimax at depth 3 from thread 15
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 500392
+Starting minimax at depth 3 from thread 8
+Found possible winning sequence in iteration 750370
+Starting minimax at depth 3 from thread 12
+Found possible winning sequence in iteration 125411
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 813011
+Starting minimax at depth 3 from thread 13
+Minimax from thread 3 finished with reward 0.000000
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 8 finished with reward 0.000000
+Found possible winning sequence in iteration 625974
+Starting minimax at depth 3 from thread 10
+Found possible winning sequence in iteration 188302
+Starting minimax at depth 3 from thread 3
+Found possible winning sequence in iteration 875915
+Starting minimax at depth 3 from thread 14
+Minimax from thread 15 finished with reward 0.000000
+Found possible winning sequence in iteration 597
+Starting minimax at depth 3 from thread 0
+Minimax from thread 10 finished with reward 0.000000
+Found possible winning sequence in iteration 251188
+Starting minimax at depth 3 from thread 4
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 13 finished with reward 0.000000
+Found possible winning sequence in iteration 750475
+Starting minimax at depth 3 from thread 12
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 938607
+Starting minimax at depth 3 from thread 15
+Found possible winning sequence in iteration 563875
+Starting minimax at depth 3 from thread 9
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 376533
+Starting minimax at depth 3 from thread 6
+Minimax from thread 11 finished with reward 0.000000
+Minimax from thread 12 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Found possible winning sequence in iteration 64503
+Starting minimax at depth 3 from thread 1
+Minimax from thread 15 finished with reward 0.000000
+Minimax from thread 9 finished with reward 0.000000
+Minimax from thread 6 finished with reward 0.000000
+Found possible winning sequence in iteration 254457
+Starting minimax at depth 3 from thread 4
+Found possible winning sequence in iteration 689470
+Starting minimax at depth 3 from thread 11
+Found possible winning sequence in iteration 816017
+Starting minimax at depth 3 from thread 13
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 127965
+Starting minimax at depth 3 from thread 2
+Found possible winning sequence in iteration 377597
+Starting minimax at depth 3 from thread 6
+Found possible winning sequence in iteration 634775
+Starting minimax at depth 3 from thread 10
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 6 finished with reward 0.000000
+Found possible winning sequence in iteration 128630
+Starting minimax at depth 3 from thread 2
+Minimax from thread 10 finished with reward 0.000000
+Found possible winning sequence in iteration 506872
+Starting minimax at depth 3 from thread 8
+Minimax from thread 4 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Minimax from thread 8 finished with reward 0.000000
+Minimax from thread 14 finished with reward 0.000000
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 3 finished with reward 0.000000
+Minimax from thread 11 finished with reward 0.000000
+Found possible winning sequence in iteration 8659
+Starting minimax at depth 3 from thread 0
+Found possible winning sequence in iteration 877189
+Starting minimax at depth 3 from thread 14
+Found possible winning sequence in iteration 319002
+Starting minimax at depth 3 from thread 5
+Minimax from thread 14 finished with reward 0.000000
+Found possible winning sequence in iteration 66215
+Starting minimax at depth 3 from thread 1
+Minimax from thread 13 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 66759
+Starting minimax at depth 3 from thread 1
+Found possible winning sequence in iteration 197268
+Starting minimax at depth 3 from thread 3
+Minimax from thread 0 finished with reward 0.000000
+Minimax from thread 3 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 467302
+Starting minimax at depth 3 from thread 7
+Minimax from thread 7 finished with reward 0.000000
+Found possible winning sequence in iteration 605564
+Starting minimax at depth 3 from thread 9
+Minimax from thread 9 finished with reward 0.000000
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+Proven move not found!
+MATE IN 4 PUZZLE
+Loaded FEN: 5rk1/5r2/1NRR2p1/3PQ3/7p/7P/6PK/5q2 b - - 2 2
+
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |   |   |   |   |   | T | K |   |
+8 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | T |   |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | h | t | t |   |   | o |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   |   | x | q |   |   |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | o |
+4 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | x |
+3 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |.x | k |
+2 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | Q |   |   |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black queen from F1 to G2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |   |   |   |   |   | T | K |   |
+8 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | T |   |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | h | t | t |   |   | o |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   |   | x | q |   |   |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | o |
+4 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | x |
+3 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |.x | k |
+2 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | Q |   |   |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black queen from F1 to G2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |   |   |   |   |   | T | K |   |
+8 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | T |   |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | h | t | t |   |   | o |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   |   | x | q |   |   |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | o |
+4 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | x |
+3 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |.x | k |
+2 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | Q |   |   |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from F7 to F2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |   |   |   |   |   | T | K |   |
+8 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | T |   |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | h | t | t |   |   | o |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   |   | x | q |   |   |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | o |
+4 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | x |
+3 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |.x | k |
+2 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | Q |   |   |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black queen from F1 to G2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |   |   |   |   |   | T | K |   |
+8 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | T |   |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | h | t | t |   |   | o |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   |   | x | q |   |   |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | o |
+4 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |   | x |
+3 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   |   |.x | k |
+2 |___|___|___|___|___|___|___|___|
+  |   |   |   |   |   | Q |   |   |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black queen from F1 to C1:
+Median run time is 16.08
+
+ Performance counter stats for './chess -f 6.txt -n 16 -d 4 -x 1 -r 5':
+
+            288351      cache-misses                                                
+
+     162.623518440 seconds time elapsed
+
+mv: cannot stat `/home/syalaman/out_*': No such file or directory

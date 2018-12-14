@@ -1,0 +1,9 @@
+Overall time 7.29
+Phi time 7.29
+Offloading time 0.00
+Selection time 0.60
+Expansion time 0.30
+Simulation time 5.21
+Backprop time 0.13
+Minimax time 0.15
+Atomic time 0.63

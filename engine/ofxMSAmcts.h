@@ -292,7 +292,7 @@ namespace msa {
 
                   atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   //if(debug)
-                  printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
+                  //printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
                   continue;
                 }
 
@@ -339,12 +339,12 @@ namespace msa {
                   if(use_minimax_selection && (node->proved == NOT_PROVEN) && 
                       (node->state.depth <= minimax_depth_trigger) &&
                       _use_minimax_selection) {
-                    printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
+                    //printf("Starting minimax at depth %d from thread %d\n", node->state.depth, omp_get_thread_num());
                     //float black_reward = minimax(node->get_state());
                     auto minimax_t_start = Clock::now();
                     float black_reward = omp_minimax(node->get_state(), found_proven_move);
                     minimax_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - minimax_t_start).count();
-                    printf("Minimax from thread %d finished with reward %f\n", omp_get_thread_num(), black_reward);
+                    //printf("Minimax from thread %d finished with reward %f\n", omp_get_thread_num(), black_reward);
                     if(black_reward == VICTORY) node->proved = PROVEN_VICTORY;
                     else node->proved = PROVEN_LOSS;
                     found_proven_node = true;
@@ -433,7 +433,7 @@ namespace msa {
                 else if(!minimax_search_triggered){
                   // get rewards vector for all agents
                   rewards = state.evaluate();
-                  if(rewards[BLACK_ID] == VICTORY){
+                  if(debug && rewards[BLACK_ID] == VICTORY){
                     printf("Found possible winning sequence in iteration %d\n", _iterations);
                   }
 

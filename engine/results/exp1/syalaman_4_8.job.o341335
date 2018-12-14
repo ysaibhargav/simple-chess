@@ -1,0 +1,228 @@
+4.txt
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 375284
+Starting minimax at depth 2 from thread 3
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 501643
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 2184
+Starting minimax at depth 2 from thread 0
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 503048
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 1.000000
+Found child with proven victory in iteration 503050 by thread 4!
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 250052
+Starting minimax at depth 2 from thread 2
+Found possible winning sequence in iteration 625162
+Starting minimax at depth 2 from thread 5
+Minimax from thread 2 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Found possible winning sequence in iteration 750993
+Starting minimax at depth 2 from thread 6
+Minimax from thread 6 finished with reward 0.000000
+Found possible winning sequence in iteration 946
+Starting minimax at depth 2 from thread 0
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 126187
+Starting minimax at depth 2 from thread 1
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 751686
+Starting minimax at depth 2 from thread 6
+Minimax from thread 6 finished with reward 1.000000
+Found child with proven victory in iteration 751688 by thread 6!
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 125372
+Starting minimax at depth 2 from thread 1
+Minimax from thread 1 finished with reward 0.000000
+Found possible winning sequence in iteration 631
+Starting minimax at depth 2 from thread 0
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 253280
+Starting minimax at depth 2 from thread 2
+Minimax from thread 2 finished with reward 0.000000
+Found possible winning sequence in iteration 4480
+Starting minimax at depth 2 from thread 0
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 383233
+Starting minimax at depth 2 from thread 3
+Minimax from thread 3 finished with reward 1.000000
+Found child with proven victory in iteration 383235 by thread 3!
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 500187
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 625567
+Starting minimax at depth 2 from thread 5
+Found possible winning sequence in iteration 875672
+Starting minimax at depth 2 from thread 7
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 5 finished with reward 0.000000
+Found possible winning sequence in iteration 501148
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 878426
+Starting minimax at depth 2 from thread 7
+Minimax from thread 7 finished with reward 0.000000
+Found possible winning sequence in iteration 5743
+Starting minimax at depth 2 from thread 0
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 757452
+Starting minimax at depth 2 from thread 6
+Minimax from thread 6 finished with reward 1.000000
+Found child with proven victory in iteration 757454 by thread 6!
+Finished offload to Phi
+Starting parallel execution
+Found possible winning sequence in iteration 500099
+Starting minimax at depth 2 from thread 4
+Found possible winning sequence in iteration 200
+Starting minimax at depth 2 from thread 0
+Found possible winning sequence in iteration 625247
+Starting minimax at depth 2 from thread 5
+Minimax from thread 5 finished with reward 0.000000
+Minimax from thread 4 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 375549
+Starting minimax at depth 2 from thread 3
+Found possible winning sequence in iteration 875651
+Starting minimax at depth 2 from thread 7
+Minimax from thread 3 finished with reward 0.000000
+Found possible winning sequence in iteration 409
+Starting minimax at depth 2 from thread 0
+Minimax from thread 7 finished with reward 0.000000
+Minimax from thread 0 finished with reward 0.000000
+Found possible winning sequence in iteration 501419
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 0.000000
+Found possible winning sequence in iteration 501966
+Starting minimax at depth 2 from thread 4
+Minimax from thread 4 finished with reward 1.000000
+Found child with proven victory in iteration 501968 by thread 4!
+MATE IN 3 PUZZLE
+Loaded FEN: r3k2r/pp2npp1/1q6/2b1P1p1/4Np2/2P5/PP4PP/R1B1QR1K b kq - 0 1
+
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |.T |   |   |   |.K |   |   |.T |
+8 |___|___|___|___|___|___|___|___|
+  |.o |.o |   |   | H |.o |.o |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | Q |   |   |   |   |   |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   | B |   | x |   | o |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   | h | o |   |   |
+4 |___|___|___|___|___|___|___|___|
+  |   |   | x |   |   |   |   |   |
+3 |___|___|___|___|___|___|___|___|
+  |.x |.x |   |   |   |   |.x |.x |
+2 |___|___|___|___|___|___|___|___|
+  | t |   |.b |   | q | t |   | k |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from H8 to H2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |.T |   |   |   |.K |   |   |.T |
+8 |___|___|___|___|___|___|___|___|
+  |.o |.o |   |   | H |.o |.o |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | Q |   |   |   |   |   |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   | B |   | x |   | o |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   | h | o |   |   |
+4 |___|___|___|___|___|___|___|___|
+  |   |   | x |   |   |   |   |   |
+3 |___|___|___|___|___|___|___|___|
+  |.x |.x |   |   |   |   |.x |.x |
+2 |___|___|___|___|___|___|___|___|
+  | t |   |.b |   | q | t |   | k |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from H8 to H2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |.T |   |   |   |.K |   |   |.T |
+8 |___|___|___|___|___|___|___|___|
+  |.o |.o |   |   | H |.o |.o |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | Q |   |   |   |   |   |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   | B |   | x |   | o |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   | h | o |   |   |
+4 |___|___|___|___|___|___|___|___|
+  |   |   | x |   |   |   |   |   |
+3 |___|___|___|___|___|___|___|___|
+  |.x |.x |   |   |   |   |.x |.x |
+2 |___|___|___|___|___|___|___|___|
+  | t |   |.b |   | q | t |   | k |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from H8 to H2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |.T |   |   |   |.K |   |   |.T |
+8 |___|___|___|___|___|___|___|___|
+  |.o |.o |   |   | H |.o |.o |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | Q |   |   |   |   |   |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   | B |   | x |   | o |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   | h | o |   |   |
+4 |___|___|___|___|___|___|___|___|
+  |   |   | x |   |   |   |   |   |
+3 |___|___|___|___|___|___|___|___|
+  |.x |.x |   |   |   |   |.x |.x |
+2 |___|___|___|___|___|___|___|___|
+  | t |   |.b |   | q | t |   | k |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from H8 to H2:
+   ___ ___ ___ ___ ___ ___ ___ ___ 
+  |.T |   |   |   |.K |   |   |.T |
+8 |___|___|___|___|___|___|___|___|
+  |.o |.o |   |   | H |.o |.o |   |
+7 |___|___|___|___|___|___|___|___|
+  |   | Q |   |   |   |   |   |   |
+6 |___|___|___|___|___|___|___|___|
+  |   |   | B |   | x |   | o |   |
+5 |___|___|___|___|___|___|___|___|
+  |   |   |   |   | h | o |   |   |
+4 |___|___|___|___|___|___|___|___|
+  |   |   | x |   |   |   |   |   |
+3 |___|___|___|___|___|___|___|___|
+  |.x |.x |   |   |   |   |.x |.x |
+2 |___|___|___|___|___|___|___|___|
+  | t |   |.b |   | q | t |   | k |
+1 |___|___|___|___|___|___|___|___|
+    A   B   C   D   E   F   G   H  
+
+Beginning offload to Phi
+Finished parallel execution
+   Black rook from H8 to H2:
+Median run time is 8.23
+
+ Performance counter stats for './chess -f 4.txt -n 8 -d 3 -x 1 -r 5':
+
+            218627      cache-misses                                                
+
+      63.719997138 seconds time elapsed
+
+mv: cannot stat `/home/syalaman/out_*': No such file or directory

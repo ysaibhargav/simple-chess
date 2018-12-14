@@ -33,7 +33,7 @@ submit:
 	cd templates && ../scripts/batch_generate.sh 
 	cd job_outputs && ../scripts/sub/submit.sh
 clean:
-	/bin/rm -rf *~ *.o $(APP_NAME) templates/$(USER)_*.job job_outputs/$(USER)_* file_outputs/*
+	/bin/rm -rf *~ *.o $(APP_NAME) templates/$(USER)_*.job #job_outputs/$(USER)_* file_outputs/*
 
 # For a given rule:
 # $< = first prerequisite

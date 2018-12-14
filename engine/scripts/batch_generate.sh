@@ -1,8 +1,8 @@
 #/usr/bin/env bash
 # generate jobs in batch
 
-threads=(4) #(1 2 4 8 16) # The number of threads 
-inputs=(puzzles/5-4.txt) # The name of the input files
+threads=(1 2 4 8 16) # The number of threads 
+inputs=(puzzles/6.txt) # The name of the input files
 depths=(4)
 rm -f *.job
 
