@@ -7,14 +7,15 @@
 #include "IState.h"
 #include "chessboard.h"
 #include "chessplayer.h"
-#include <vector>
+//#include <vector>
+#include <time.h>
 //#include <thrust/device_vector.h>
 
 #define INF 9
 #define VICTORY 1
 #define LOSS 0
 #define MSIZE 100
-#define CONDITION (state.depth==1 && !state.white_to_move)
+#define CONDITION (state.depth==2 && !state.white_to_move)
 
 // Pieces defined in lower 4 bits
 #define EMPTY	0x00	// Empty square
@@ -1823,6 +1824,7 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             }
 
             // execute kernel
+            time_t sTime = time(NULL);
             minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
 
             errCode = cudaPeekAtLastError();
@@ -1833,6 +1835,9 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             //printf("Successful return1.0\n");
 
             cudaCheckError(cudaDeviceSynchronize());
+
+            time_t eTime = time(NULL);
+            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
 
             cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
                     cudaMemcpyDeviceToHost));
@@ -1889,7 +1894,7 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
                 cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
                 *set = !(*set);
             }
-             
+            time_t sTime = time(NULL);
             minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
             
             errCode = cudaPeekAtLastError();
@@ -1899,7 +1904,10 @@ not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
             }
      
             cudaCheckError(cudaDeviceSynchronize());
-             
+            
+            time_t eTime = time(NULL);
+            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
+ 
             cudaMemcpy(resultarray, res, sizeof(float)*len,
                     cudaMemcpyDeviceToHost);
              
@@ -2004,6 +2012,7 @@ minimaxCuda(State state, bool *set) {
             }
 
             // execute kernel
+            time_t sTime = time(NULL);
             minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
 
             errCode = cudaPeekAtLastError();
@@ -2013,6 +2022,9 @@ minimaxCuda(State state, bool *set) {
             }
 
             cudaCheckError(cudaDeviceSynchronize());
+
+            time_t eTime = time(NULL);
+            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
 
             cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
                     cudaMemcpyDeviceToHost));
@@ -2067,7 +2079,7 @@ minimaxCuda(State state, bool *set) {
                 cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
                 *set = !(*set);
             }            
-            
+            time_t sTime = time(NULL); 
             minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
             
             errCode = cudaPeekAtLastError();
@@ -2077,6 +2089,8 @@ minimaxCuda(State state, bool *set) {
             }
      
             cudaCheckError(cudaDeviceSynchronize());
+            time_t eTime = time(NULL);
+            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
              
             cudaMemcpy(resultarray, res, sizeof(float)*len,
                     cudaMemcpyDeviceToHost);
@@ -2107,7 +2121,7 @@ minimaxCuda(State state, bool *set) {
             next_state.apply_action(*it);
             value = max(value, mini_Rec_CUDA(next_state, set));
             if(value == VICTORY) {
-                printf("VICTORY\n");
+                //printf("VICTORY\n");
                 return Action(it->regular, it->nulls, VICTORY);
             }
         } 
