@@ -67,7 +67,7 @@ namespace msa {
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 500000 ),
+          max_iterations( 4000000 ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
@@ -318,8 +318,6 @@ namespace msa {
                     //printf("released selection lock, tid %d\n", omp_get_thread_num());
                     break;
                   }
-                  //TODO(sai): get best uct child and proving in critical block 
-                  //TODO(sai): virtual loss
                   node = get_best_uct_child(node, uct_k);
                   IF_USE_LOCK omp_unset_lock(&(node->parent->lck));
                   //printf("released selection lock, tid %d\n", omp_get_thread_num());
@@ -379,7 +377,6 @@ namespace msa {
 
                 auto expansion_t_start = Clock::now();
                 // 2. EXPAND by adding a single child (if not terminal or not fully expanded)
-                // TODO(sai): critical
                 if(!found_proven_node && !node->is_fully_expanded() && !node->is_terminal()) {
                   node = node->expand();
                   //printf("acquiring expansion lock, tid %d\n", omp_get_thread_num());
