@@ -7,7 +7,7 @@
 #include "IState.h"
 #include "chessboard.h"
 #include "chessplayer.h"
-//#include <vector>
+#include <vector>
 #include <time.h>
 //#include <thrust/device_vector.h>
 
@@ -1736,227 +1736,6 @@ minim_kernel(State *s, float* res, int *len) {
     free(b);
 }
 
-float mini_Rec_CUDA(State state, bool *set) {
-    State* s;
-    float* res;
-    float* resultarray;
-    int len;
-
-    const int threadsPerBlock = 64;
-
-    std::vector<Action> actions;
-    state.get_actions(actions);
-    len = actions.size();
-    const int blocks = (len + threadsPerBlock - 1)/threadsPerBlock;
-    
-    if(state.is_terminal())
-        return state.evaluate_minimax();
-    if(CONDITION) {
-        //Build array of States
-        State *st = (State*)malloc(sizeof(State)*actions.size());
-        for(int i = 0; i < actions.size(); i++) {
-            st[i] = state;
-            st[i].apply_action(actions.at(i));
-            /*if(!(st[i].depth == 1 && !st[i].white_to_move))
-                printf("isTerm test inputs wrong!\n");*/
-        }
-        
-        int numState = actions.size();
-        int len = actions.size();
-        
-        //call CUDA kernel to evaluate_minimax
-        if(!state.white_to_move){
-            float value = -INF;
-            int *l;
-            cudaError_t errCode;
-            resultarray = (float*)malloc(sizeof(float)*len);
-            // execute kernel
-            /*for(int i = 0; i < len; i++) {
-                printf("Initial Value %d: %f\n", i, resultarray[i]);
-            }*/
-            
-            /*if(st[0].depth == 0 && st[0].white_to_move)
-                printf("isTerm test inputs correct\n");*/
-            
-            // pass values to GPU
-
-            cudaMalloc((void**)&s, sizeof(State) * numState);
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error cudaMalloc s \
-not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1744);
-            }
-            cudaMalloc((void**)&res, sizeof(float) * len);
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error cudaMalloc res \
-not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1751);
-            }
-            cudaMalloc((void**)&l, sizeof(int));
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error cudaMalloc l \
-not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1758);
-            }
-
-            cudaCheckError(cudaMemcpy(s, (void *)st, sizeof(State)*numState, 
-                    cudaMemcpyHostToDevice));
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error cudaMemcpy s \
-not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1767);
-            }
-            cudaCheckError(cudaMemcpy(l, (void *)&len, sizeof(int), cudaMemcpyHostToDevice));
-            
-            if(!(*set)) {
-                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
-                *set = !(*set);
-            }
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error occured before kernel launch with \
-not white to move: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1776);
-            }
-
-            // execute kernel
-            time_t sTime = time(NULL);
-            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
-
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1785);
-            }
-            //printf("Successful return1.0\n");
-
-            cudaCheckError(cudaDeviceSynchronize());
-
-            time_t eTime = time(NULL);
-            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
-
-            cudaCheckError(cudaMemcpy(resultarray, res, sizeof(float)*len, 
-                    cudaMemcpyDeviceToHost));
-
-            //free values
-            cudaFree(s);
-            cudaFree(res);
-            cudaFree(l);
-
-            //use resultarray
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1803);
-            }
-            //printf("Successful return\n");
-            free(st);
-            for(int i = 0; i < len; i++) {
-                value = max(value, resultarray[i]);
-                if(value == VICTORY) {
-                    free(resultarray);
-                    //printf("Found result, %d\n", i);
-                    return VICTORY;
-                }
-                //printf("Value %d: %f\n", i, resultarray[i]);
-            }
-            free(resultarray);
-
-            //value = max(value, minimax(next_state));
-            //if(value == VICTORY)
-                //return Action(it->regular, it->nulls, value);
-            return LOSS;
-        }
-        else {
-            //printf("White to move\n");
-            float value = INF;
-            int *l;
-
-            cudaError_t errCode;
-     
-            resultarray = (float*)malloc(sizeof(float)*len);
-             // execute kernel
-             // pass values to GPU
-            cudaMalloc((void**)&s, sizeof(State) * numState);
-            cudaMalloc((void**)&res, sizeof(float) * len);
-            cudaMalloc((void**)&l, sizeof(int));
-
-            cudaMemcpy(s, (void*)st, sizeof(State)*numState,
-                    cudaMemcpyHostToDevice);
-            cudaMemcpy(l, (void*)&len, sizeof(int), cudaMemcpyHostToDevice);
-             // execute kernel
-             
-            if(!(*set)) {
-                cudaDeviceSetLimit(cudaLimitMallocHeapSize, 12*1024*1024);
-                *set = !(*set);
-            }
-            time_t sTime = time(NULL);
-            minim_kernel<<<blocks, threadsPerBlock>>>(s, res, l);
-            
-            errCode = cudaPeekAtLastError();
-            if (errCode != cudaSuccess) {
-                fprintf(stderr, "WARNING: A CUDA error occured: code=%d, %s\n", errCode, cudaGetErrorString(errCode));
-                exit(1846);
-            }
-     
-            cudaCheckError(cudaDeviceSynchronize());
-            
-            time_t eTime = time(NULL);
-            printf("Time parallel %.3f s\n", 1.f*(eTime - sTime));
- 
-            cudaMemcpy(resultarray, res, sizeof(float)*len,
-                    cudaMemcpyDeviceToHost);
-             
-            //free values
-            cudaFree(s);
-            cudaFree(res);
-            cudaFree(l);
-            //use resultarray
-            
-            free(st);
-            //remove nulls?
-            for(int i = 0; i < len; i++) {
-                value = min(value, resultarray[i]);
-                if(value == LOSS) {
-                  free(resultarray);
-                  return LOSS;
-                }
-            }
-            free(resultarray);
-            return VICTORY;
-        }
-    }    
-
-    if(!state.white_to_move){
-        float value = -INF;
-        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
-            State next_state = state;
-            next_state.apply_action(*it);
-            value = max(value, mini_Rec_CUDA(next_state, set));
-            if(value == VICTORY) {
-                //printf("Found path to VIC\n");
-                return value;
-            }
-        } 
-        return LOSS;
-    }
-    else {
-        float value = INF;
-        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
-            State next_state = state;
-            next_state.apply_action(*it);
-            value = min(value, mini_Rec_CUDA(next_state, set));
-            if(value == LOSS) return value;
-        } 
-        //printf("No path to LOSS\n");
-        return VICTORY;
-    }
-}
-
 Action
 minimaxCuda(State state, bool *set) {
     State* s;
@@ -1965,6 +1744,7 @@ minimaxCuda(State state, bool *set) {
     float* resultarray;
     int len;
 
+    State orig = state;
     const int threadsPerBlock = 64;
 
     std::vector<Action> actions;
@@ -1974,15 +1754,58 @@ minimaxCuda(State state, bool *set) {
 
     if(state.is_terminal())
         return Action(state.evaluate_minimax());
+        
+    std::vector<std::vector<State>> tree;
+    std::vector<std::vector<int>> prev;
+    std::vector<State> n;
+    std::vector<int> l;
+    std::vector<State> last;
+    State next = state;
+    for(int i = 0; i < actions.size(); i++) {
+        next = state;
+        next.apply_action(actions.at(i));
+        n.push_back(next);
+        l.push_back(i);
+    }
+    tree.push_back(n);
+    prev.push_back(l);
+    printf("Depth: %d, white_to_move: %d\n", next.depth, !next.white_to_move);
+    //state = next;
+    while(!CONDITION) {
+        //get back
+        printf("Depth: %d, white_to_move: %d\n", state.depth, !state.white_to_move);
+        std::vector<State> current = tree.back();
+        std::vector<State> n;
+        std::vector<int> val;
+        for(int j = 0; j < current.size(); j++) {
+            State next = current.at(j);
+            std::vector<Action> act;
+            next.get_actions(act);
+            for(int z = 0; z < act.size(); z++) {
+                State next2 = next;
+                next2.apply_action(act.at(z));
+                n.push_back(next2);
+                val.push_back(j);
+                if(act.size() == 1)
+                    printf("Ch %d %d %d %d\n", val.size(), j, act.at(z).regular.from, act.at(z).regular.to);
+            }
+        }
+        state = tree.back().back();
+        tree.push_back(n);
+        prev.push_back(val);
+    }
+    printf("Depth: %d, white_to_move: %d\n", state.depth, !state.white_to_move);
     if(CONDITION) {
         //Build array of States
-        State *st = (State*)malloc(sizeof(State)*actions.size());
-        for(int i = 0; i < actions.size(); i++) {
-            st[i] = state;
-            st[i].apply_action(actions.at(i));
+        std::vector<State> send = tree.back();
+        State *st = (State*)malloc(sizeof(State)*send.size());
+        for(int i = 0; i < send.size(); i++) {
+            st[i] = send.at(i);
         }
-        
+        len = send.size();
         numState = len;
+        
+        printf("Size: %d\n", len);
         
         //call CUDA kernel to evaluate_minimax
         if(!state.white_to_move){
@@ -2042,19 +1865,99 @@ minimaxCuda(State state, bool *set) {
             }
             
             free(st);
-            for(int i = 0; i < len; i++) {
-                value = max(value, resultarray[i]);
-                if(value == VICTORY) {
-                    free(resultarray);
-                    return Action(actions.at(i).regular, actions.at(i).nulls, VICTORY);
+            int ltree = tree.size() -1;
+            while(ltree != 0) {
+                std::vector<State> cState = tree.at(ltree);
+                std::vector<int> cPrev = prev.at(ltree);
+                State ch = tree.at(ltree-1).back();
+                int index = 0;
+                int prevVal = cPrev.at(index);
+                int prevVal2 = prevVal;
+                printf("Check1: %d\n", cState.size());
+                while(index < cState.size()) {
+                    bool f = false;
+                    if(ch.white_to_move)
+                        value = INF;
+                    else
+                        value = -INF;
+                    while(prevVal2 == prevVal) {
+                        
+                        if(resultarray[index] == VICTORY)
+                            printf("Output %d\n", index);
+                        if(ch.white_to_move && !f) {
+                            value = min(value, resultarray[index]);
+                            if(value == LOSS) {
+                                printf("Not %d\n", prevVal);
+                                resultarray[prevVal] = LOSS;
+                                f = !f;
+                            }
+                        }
+                        if(!ch.white_to_move && !f) {
+                            value = max(value, resultarray[index]);
+                            if(value == VICTORY) {
+                                printf("Result %d\n", prevVal);
+                                resultarray[prevVal] = VICTORY;
+                                f = !f;
+                            }
+                        }
+                        index++;
+                        if(index < cPrev.size())
+                            prevVal2 = cPrev.at(index);
+                        else
+                            prevVal2 = prevVal+1;
+                        //printf("Check2\n");
+                    }
+                    if(!f && ch.white_to_move) {
+                        printf("Result white no loss\n");
+                        resultarray[prevVal] = VICTORY;
+                    }
+                    if(!f && !ch.white_to_move) {
+                        printf("Result bad: %d\n", prevVal);
+                        resultarray[prevVal] = LOSS;
+                    }
+                    if(index < cPrev.size())
+                        prevVal = cPrev.at(index);
+                    //printf("Check3: %d\n", ltree);
+                }
+                ltree--;
+                printf("Check4: %d\n", ltree);
+            }
+            std::vector<State> first = tree.at(0);
+            State ch = orig;
+            if(!ch.white_to_move) {
+                value = -INF;
+            }
+            else {
+                value = INF;
+            }
+            printf("Final1 %d\n", first.size());
+            
+            
+            for(int y = 0; y < first.size(); y++) {
+                if(!ch.white_to_move) {
+                    value = max(value, resultarray[y]);
+                    if(value == VICTORY) {
+                        free(resultarray);
+                        return Action(actions.at(y).regular, actions.at(y).nulls, VICTORY);
+                    }
+                }
+                else {
+                    value = min(value, resultarray[y]);
+                    if(value == LOSS) {
+                        free(resultarray);
+                        return Action(actions.at(y).regular, actions.at(y).nulls, LOSS);
+                    }
                 }
             }
+            
+            
             free(resultarray);
-
-            //value = max(value, minimax(next_state));
-            //if(value == VICTORY)
-                //return Action(it->regular, it->nulls, value);
-            return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+            if(!ch.white_to_move) {
+                return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+            }
+            else {
+                return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+            }
         }
         else {
             printf("White to move\n");
@@ -2102,42 +2005,79 @@ minimaxCuda(State state, bool *set) {
             //use resultarray
             
             free(st);
-            //remove nulls?
-            for(int i = 0; i < len; i++) {
-                value = min(value, resultarray[i]);
-                if(value == LOSS) {
-                  free(resultarray);
-                  return Action(actions.at(i).regular, actions.at(i).nulls, LOSS);
+            int ltree = tree.size() -1;
+            while(ltree != 0) {
+                std::vector<State> cState = tree.at(ltree);
+                std::vector<int> cPrev = prev.at(ltree);
+                State ch = cState.back();
+                int index = 0;
+                int prevVal = cPrev.at(index);
+                int prevVal2 = prevVal;
+                while(index < cState.size()) {
+                    bool f = false;
+                    if(ch.white_to_move)
+                        value = INF;
+                    else
+                        value = -INF;
+                    while(prevVal2 == prevVal) {
+                        if(ch.white_to_move && !f) {
+                            value = min(value, resultarray[index]);
+                            if(value == LOSS) {
+                                resultarray[prevVal] = LOSS;
+                                f = !f;
+                            }
+                        }
+                        if(!ch.white_to_move && !f) {
+                            value = max(value, resultarray[index]);
+                            if(value == VICTORY) {
+                                resultarray[prevVal] = VICTORY;
+                                f = !f;
+                            }
+                        }
+                        index++;
+                        if(index < cPrev.size())
+                            prevVal2 = cPrev.at(index);
+                    }
+                    if(!f && ch.white_to_move)
+                        resultarray[prevVal] = VICTORY;
+                    if(!f && !ch.white_to_move)
+                        resultarray[prevVal] = LOSS;
+                    prevVal = cPrev.at(index);
+                }
+                ltree--;
+            }
+            std::vector<State> first = tree.at(0);
+            State ch = first.at(0);
+            if(!ch.white_to_move) {
+                value = -INF;
+            }
+            else {
+                value = INF;
+            }
+            for(int y = 0; y < first.size(); y++) {
+                if(!ch.white_to_move) {
+                    value = max(value, resultarray[y]);
+                    if(value == VICTORY) {
+                        free(resultarray);
+                        return Action(actions.at(y).regular, actions.at(y).nulls, VICTORY);
+                    }
+                }
+                else {
+                    value = min(value, resultarray[y]);
+                    if(value == LOSS) {
+                        free(resultarray);
+                        return Action(actions.at(y).regular, actions.at(y).nulls, LOSS);
+                    }
                 }
             }
             free(resultarray);
-            return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+            if(!ch.white_to_move) {
+                return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);
+            }
+            else {
+                return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);
+            }
         }
-    }
-    if(!state.white_to_move){
-        float value = -INF;
-        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
-            State next_state = state;
-            next_state.apply_action(*it);
-            value = max(value, mini_Rec_CUDA(next_state, set));
-            if(value == VICTORY) {
-                //printf("VICTORY\n");
-                return Action(it->regular, it->nulls, VICTORY);
-            }
-        } 
-        return Action(actions.begin()->regular, actions.begin()->nulls, LOSS);;
-    }
-    else {
-        float value = INF;
-        for(std::vector<Action>::iterator it=actions.begin(); it!=actions.end(); it++) {
-            State next_state = state;
-            next_state.apply_action(*it);
-            value = min(value, mini_Rec_CUDA(next_state, set));
-            if(value == LOSS) {
-                return Action(it->regular, it->nulls, LOSS);
-            }
-        } 
-        return Action(actions.begin()->regular, actions.begin()->nulls, VICTORY);;
     }
 }
 }
