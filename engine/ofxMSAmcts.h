@@ -27,6 +27,7 @@
 #define OCCUPANCY_LOSS (float)((parallel_scheme == TREE_PARALLEL) ? OCCUPANCY_LOSS_VAL : 0)
 #define VISIT_THRESHOLD 10
 #define IF_USE_LOCK if(parallel_scheme == TREE_PARALLEL)
+#define IF_NOT_USE_LOCK if(parallel_scheme == ROOT_PARALLEL)
 
 #define BUFSIZE 1024
 
@@ -61,13 +62,13 @@ namespace msa {
         unsigned parallel_scheme;
 
         //--------------------------------------------------------------
-        UCT(bool use_minimax_rollouts=false, bool use_minimax_selection=false,
+        UCT(int max_iterations=1000000, bool use_minimax_rollouts=false, bool use_minimax_selection=false,
             unsigned int minimax_depth_trigger=-1, unsigned int minimax_selection_criterion=ALWAYS, bool debug=false,
             int num_threads=1, unsigned int seed=unsigned(time(0)), unsigned parallel_scheme=ROOT_PARALLEL) :
           iterations(0),
           debug(debug),
           uct_k( sqrt(2) ), 
-          max_iterations( 4000000 ),
+          max_iterations( max_iterations ),
           max_millis( 0 ),
           simulation_depth( 10 ),
           use_minimax_rollouts(use_minimax_rollouts),
@@ -237,6 +238,7 @@ namespace msa {
 
             TreeNode* per_thread_best_nodes[num_threads];
 
+            double pre_processing_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
             printf("Starting parallel execution\n");
             // iterate
             omp_set_num_threads(num_threads);
@@ -261,6 +263,7 @@ namespace msa {
                 // indicate start of loop
                 //timer.loop_start();
                 
+                auto selection_t_start = Clock::now();
                 if(use_minimax_selection && minimax_depth_trigger >= (root_node.state.depth - 1)) {
                   auto atomic_t_start = Clock::now();
                   #pragma omp atomic read
@@ -271,14 +274,13 @@ namespace msa {
                 
                 if(read_found_proven_move) continue;
                 
-                auto selection_t_start = Clock::now();
                 // 1. SELECT. Start at root, dig down into tree using UCT on all fully expanded nodes
                 if(use_minimax_selection && root_node.proved != NOT_PROVEN) { 
                   auto atomic_t_start = Clock::now();
 
                   //printf("acquiring root lock, tid %d\n", omp_get_thread_num());
                   omp_set_lock(&(root_node.lck));
-                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                  IF_USE_LOCK atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   {
                     TreeNode *best_node = root_node.proven_child; 
                     //#pragma omp critical
@@ -290,7 +292,7 @@ namespace msa {
                   omp_unset_lock(&(root_node.lck));
                   //printf("released root lock, tid %d\n", omp_get_thread_num());
 
-                  atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
+                  IF_NOT_USE_LOCK atomic_time += (double)std::chrono::duration_cast<dsec>(Clock::now() - atomic_t_start).count();
                   //if(debug)
                   //printf("Found child with proven victory in iteration %d by thread %d!\n", _iterations, omp_get_thread_num());
                   continue;
@@ -483,6 +485,7 @@ namespace msa {
                 //if(max_millis > 0 && timer.check_duration(max_millis)) break;
               } // end for
               
+              auto post_processing_t_start = Clock::now();
               if(!found_proven_move){
                 printf("Proven move not found!\n");
                 TreeNode* best_node = NULL;
@@ -503,6 +506,7 @@ namespace msa {
 
               phi_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - inner_t_start).count();
               double overall_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - t_start).count();
+              double post_processing_time = (double)std::chrono::duration_cast<dsec>(Clock::now() - post_processing_t_start).count();
               fprintf(output_file, "Overall time %.2f\n", overall_time);
               fprintf(output_file, "Phi time %.2f\n", phi_time);
               fprintf(output_file, "Offloading time %.2f\n", overall_time-phi_time);
@@ -512,6 +516,8 @@ namespace msa {
               fprintf(output_file, "Backprop time %.2f\n", backprop_time);
               fprintf(output_file, "Minimax time %.2f\n", minimax_time);
               fprintf(output_file, "Atomic time %.2f\n", atomic_time);
+              fprintf(output_file, "Pre processing time %.2f\n", pre_processing_time);
+              fprintf(output_file, "Post processing time %.2f\n", post_processing_time);
               fclose(output_file);
             } // end parallel region
           } // end mic

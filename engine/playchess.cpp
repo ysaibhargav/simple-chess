@@ -94,6 +94,9 @@ int main(int argc, const char *argv[]) {
   int num_runs = get_option_int("-r", 1);
   int seed = get_option_int("-s", (int)time(0));
   unsigned minimax_depth_trigger = get_option_int("-h", INF);
+  const char *parallel_scheme_str = get_option_string("-m", "TREE_PARALLEL");
+  const char *heuristic = get_option_string("-H", "MULTIPLE_VISITS");
+  int max_iterations = get_option_int("-N", 1000000);
 
   int error = 0;
 
@@ -142,10 +145,20 @@ int main(int argc, const char *argv[]) {
   bool use_minimax_selection = true;
   //unsigned minimax_selection_criterion = NONZERO_WINS;//ALWAYS;
   unsigned minimax_selection_criterion = MULTIPLE_VISITS;
+  if(strcmp(heuristic, "MULTIPLE_VISITS") == 0)
+    minimax_selection_criterion = MULTIPLE_VISITS;
+  else if(strcmp(heuristic, "ALWAYS") == 0)
+    minimax_selection_criterion = ALWAYS;
+  else if(strcmp(heuristic, "NONZERO_WINS") == 0)
+    minimax_selection_criterion = NONZERO_WINS;
   unsigned parallel_scheme = TREE_PARALLEL;
+  if(strcmp(parallel_scheme_str, "TREE_PARALLEL") == 0)
+    parallel_scheme = TREE_PARALLEL;
+  else if(strcmp(parallel_scheme_str, "ROOT_PARALLEL") == 0)
+    parallel_scheme = ROOT_PARALLEL;
   //unsigned parallel_scheme = ROOT_PARALLEL;
   bool debug = false;
-  msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(use_minimax_rollouts=use_minimax_rollouts,
+  msa::mcts::UCT<msa::mcts::State, msa::mcts::Action> black(max_iterations=max_iterations, use_minimax_rollouts=use_minimax_rollouts,
       use_minimax_selection=use_minimax_selection, minimax_depth_trigger=minimax_depth_trigger,
       minimax_selection_criterion=minimax_selection_criterion, debug=debug, num_threads=num_threads,
       seed=(unsigned)seed, parallel_scheme=parallel_scheme);
