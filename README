@@ -1,15 +1,19 @@
-SIMPLE CHESS
+MCTS-Minimax-Selections MATE IN N CHESS PUZZLE SOLVER
 
-A basic Chess AI using min-max search with alpha-beta pruning and a simplistic
-approach to quiescent search.
+For more details on our implementation see our [project page](https://ysaibhargav.github.io/parallel-mcts-minimax-hybrids/)
 
+COMPILING
+make clean && make cpu
 
-COMPILE
+To use with Xeon Phi, do
+make clean && make
 
-g++ -O2 -o chess *.cpp
+RUNNING
+Sample puzzles are in the puzzles directory
+./chess -f [PATH_TO_FEN_FILE] -d [DEPTH] -n [NUM_THREADS] -x [NON_INTERACTIVE (BOOL)] -m [PARALLEL_SCHEME] -H [MINIMAX_TRIGGER_HEURISTIC] -N [MAX_MCTS_ITERS] -r [NUM_RUNS]
 
-
-PLAY
-
-Enter your moves concatenating field names, e.g. 'b2b4'.
-
+The experiments from our report can be replicated by
+./chess -f puzzles/4.txt -d 3 -n 1 -x 1 -m ROOT_PARALLEL -H NONZERO_WINS -N 1000000
+./chess -f puzzles/6.txt -d 4 -n 1 -x 1 -m ROOT_PARALLEL -H NONZERO_WINS -N 1000000
+./chess -f puzzles/4.txt -d 3 -n 1 -x 1 -m TREE_PARALLEL -H MULTIPLE_VISITS -N 4000000
+./chess -f puzzles/6.txt -d 4 -n 1 -x 1 -m TREE_PARALLEL -H MULTIPLE_VISITS -N 4000000
