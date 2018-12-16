@@ -1,6 +1,6 @@
 MCTS-Minimax-Selections MATE IN N CHESS PUZZLE SOLVER
 
-For more details on our implementation see our [project page](https://ysaibhargav.github.io/parallel-mcts-minimax-hybrids/)
+For more details on our implementation see our project page - https://ysaibhargav.github.io/parallel-mcts-minimax-hybrids/
 
 COMPILING
 make clean && make cpu
